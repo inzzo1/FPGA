@@ -8,10 +8,10 @@
         <div class="lineFrame">
             <div class="wrap">
                 <Tube :tubeNumber="5"></Tube>
-                <Tube :tubeNumber="4"></Tube>
                 <Tube :tubeNumber="3"></Tube>
-                <Tube :tubeNumber="2"></Tube>
                 <Tube :tubeNumber="1"></Tube>
+                <Tube :tubeNumber="4"></Tube>
+                <Tube :tubeNumber="2"></Tube>
                 <Tube :tubeNumber="0"></Tube>
             </div>
             <!-- <Digit1>
