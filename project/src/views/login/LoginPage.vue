@@ -1,8 +1,8 @@
 <script setup>
 import { ref, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
-import LoginForm from './LoginForm.vue'
-import RegisterForm from './RegisterForm.vue'
+import LoginForm from '../../components/login/LoginForm.vue'
+import RegisterForm from '../../components/login/RegisterForm.vue'
 
 const router = useRouter()
 
