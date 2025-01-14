@@ -1,12 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import {
-  ElMessage,
-  ElDialog,
-  ElRadioGroup,
-  ElRadioButton,
-  ElUpload,
-} from 'element-plus'
+import { ref, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 
 // 用来存储板子选择
 const boardselecting = ref('')
@@ -14,22 +8,46 @@ const boardselecting = ref('')
 // 用来控制对话框显示
 const dialogVisible = ref(false)
 
-// 用来存储上传的文件
-const uploadedFile = ref(null)
+// 用来存储上传的文件    //!!!!!!这里记得把true改成null
+const uploadedFile = ref(true)
+
+// 用来存储上传状态
+const uploadStatus = ref('')
 
 // 用来存储手动绑定的引脚数据
-const pinBinding = ref({})
+const pinBinding = ref({
+  a: '',
+  b: '',
+  f: '',
+})
 
 // 用来控制手动引脚绑定的勾选框
 const manualBinding = ref(false)
 
-// 上传文件时的验证函数
+// 监听 pinBinding 的变化，更新 manualBinding
+watch(
+  () => pinBinding.value,
+  newPinBinding => {
+    // 如果 a、b、f 都有值，设置 manualBinding 为 true
+    if (newPinBinding.a && newPinBinding.b && newPinBinding.f) {
+      manualBinding.value = true
+    } else {
+      manualBinding.value = false
+    }
+  },
+  { deep: true }, // 深度监听 pinBinding 对象中的变化
+)
+
+// 上传文件时的验证函数----->1、验证上传的文件是否为.v格式
 const beforeUpload = file => {
   const isVFile = file.name.endsWith('.v')
   if (!isVFile) {
     ElMessage.error('请上传 .v 格式的 Verilog 源码文件')
+    uploadStatus.value = '上传失败'
+  } else {
+    uploadStatus.value = '上传成功'
+    return isVFile
   }
-  return isVFile
 }
 
 // 选择确定后的操作
@@ -182,7 +200,11 @@ const handleCancel = () => {
       >
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">
-          <span>将 .v 格式文件拖到此处，或者点击上传</span>
+          <span>{{
+            uploadStatus === ''
+              ? '将 .v 格式文件拖到此处，或者点击上传'
+              : uploadStatus
+          }}</span>
         </div>
       </el-upload>
 
@@ -197,7 +219,6 @@ const handleCancel = () => {
 </template>
 
 <style lang="scss">
-//样式有问题！！！！！！弹窗的选项按钮有问题！！！！！！！记得改！！！！！
 .page-container {
   font-family: Arial, sans-serif;
 }
@@ -235,7 +256,7 @@ h1 {
 
 .boardselecting-content {
   display: flex;
-  justify-content: space-between; /* 确保两者均匀分布 */
+  justify-content: space-between;
   align-items: center;
   margin: 60px 0;
 }
@@ -264,6 +285,7 @@ h1 {
   font-size: 20px;
   border-radius: 30px;
 }
+
 .el-dialog {
   border-radius: 12px;
   padding: 20px;
@@ -281,7 +303,7 @@ h1 {
 }
 
 .dialog-footer .el-button:hover {
-  transform: translateY(-2px); /* 悬停效果：轻微上移 */
+  transform: translateY(-2px);
 }
 
 .el-radio-group {
@@ -295,7 +317,7 @@ h1 {
   border-radius: 6px;
   color: #34495e;
   transition: all 0.3s ease;
-  flex: 1 1 20%; /* 宽度为20%，可以在不同屏幕尺寸下自动变化 */
+  flex: 1 1 20%;
 }
 
 .el-radio-button:hover {
@@ -329,13 +351,13 @@ h3 {
 
 @media (max-width: 768px) {
   .content {
-    flex-direction: column; /* 小屏幕下，换成纵向排列 */
+    flex-direction: column;
     align-items: flex-start;
   }
 
   .board {
-    width: 80%; /* 在小屏幕下，让每个板的宽度更大 */
-    margin-bottom: 20px; /* 给每个板之间增加间距 */
+    width: 80%;
+    margin-bottom: 20px;
   }
 }
 </style>
