@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/modules/user'
+// import { useUserStore } from '@/stores/modules/user'
 
 // createRouter 创建路由实例
 // 配置 history 模式
@@ -24,6 +24,10 @@ const router = createRouter({
     {
       path: '/VirturalBoard',
       component: () => import('@/views/VituralBoard.vue'),
+    },
+    {
+      path: '/Board-selectingnew',
+      component: () => import('@/views/login/BoardSelectingnew.vue'),
     },
   ],
 })
