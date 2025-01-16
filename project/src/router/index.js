@@ -29,6 +29,10 @@ const router = createRouter({
       path: '/Board-selectingnew',
       component: () => import('@/views/login/BoardSelectingnew.vue'),
     },
+    {
+      path: '/RealBoard',
+      component: () => import('@/views/RealBoard.vue'),
+    },
   ],
 })
 

@@ -4,6 +4,9 @@
         tubeNumber:{
             type:Number,
             default: 0
+        },
+        isOutPut:{
+            default: false
         }
     })
 </script>
@@ -22,7 +25,7 @@
                 <Digit></Digit>
             </div>
         </div>
-        <span>Output0{{ props.tubeNumber }}</span>
+        <span v-if="props.isOutPut">Output0{{ props.tubeNumber }}</span>
     </div>
 </template>
 

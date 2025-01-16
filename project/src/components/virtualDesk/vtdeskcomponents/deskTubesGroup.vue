@@ -6,12 +6,12 @@
     <div class="tubeOutBg">
         <div class="lineFrame">
             <div class="wrap">
-                <Tube :tubeNumber="5"></Tube>
-                <Tube :tubeNumber="3"></Tube>
-                <Tube :tubeNumber="1"></Tube>
-                <Tube :tubeNumber="4"></Tube>
-                <Tube :tubeNumber="2"></Tube>
-                <Tube :tubeNumber="0"></Tube>
+                <Tube :tubeNumber="5" :isOutPut="true"></Tube>
+                <Tube :tubeNumber="3" :isOutPut="true"></Tube>
+                <Tube :tubeNumber="1" :isOutPut="true"></Tube>
+                <Tube :tubeNumber="4" :isOutPut="true"></Tube>
+                <Tube :tubeNumber="2" :isOutPut="true"></Tube>
+                <Tube :tubeNumber="0" :isOutPut="true"></Tube>
             </div>
             <!-- <Digit1>
             </Digit1> -->
@@ -25,7 +25,7 @@
 <style lang="scss" scoped>
     .tubeOutBg{
         width: 90%;
-        height: 38%;
+        height: 100%;
         margin-left: 5%;
         overflow: hidden;
         position: relative;

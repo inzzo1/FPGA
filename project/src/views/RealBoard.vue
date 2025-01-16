@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import VitualDesk from '@/components/virtualDesk/index.vue'
+import RealDesk from '@/components/realDesk/index.vue'
 </script>
 
 <template>
   <div style="width: 100%; height: 100%">
-    <VitualDesk> </VitualDesk>
+    <RealDesk></RealDesk>
   </div>
 </template>
 
