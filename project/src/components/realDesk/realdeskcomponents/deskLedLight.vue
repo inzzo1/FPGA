@@ -15,13 +15,13 @@
 </script>
 
  <template>
-    <div class="introOutBg">
+    <div class="ledOutBg">
         <div class="lineFrame">
             <div class="wrap">
                 <div v-for="(item, index) in allLeds" class="outLay" :key="index">
                     <div v-for="(led , index) in item" :key="index" class="ledFrame">
                         <div style="display: flex; justify-content: center; height: 40%;">
-                            <span style="color: white; font-size: 14px;">
+                            <span style="color: white; font-size: 13px;">
                                 {{ led.name }}
                             </span>
                         </div>
@@ -44,7 +44,7 @@
  </template>
 
  <style lang="scss" scoped>
-    .introOutBg{
+    .ledOutBg{
         width: 100%;
         height: 100%;
         overflow: hidden;

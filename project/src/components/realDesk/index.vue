@@ -1,8 +1,10 @@
 <script setup lang="ts">
     import Header from '@/components/header/deskHeader.vue'
-    import CpIntro from './realdeskcomponents/cpIntro.vue';
-    import LedLight from './realdeskcomponents/ledLight.vue'
+    import CpIntro from './realdeskcomponents/deskCpIntro.vue';
+    import LedLight from './realdeskcomponents/deskLedLight.vue'
     import Tubes from '@/components/tubes/tube.vue'
+    import Button from './realdeskcomponents/deskButton.vue';
+    import deskSwitch from './realdeskcomponents/deskSwitch.vue';
 </script>
 
 
@@ -29,9 +31,16 @@
                 <div class="digitTube">
                     <Tubes
                     :isOutPut="false"
+                    style="width: 100%; height: 120%; margin-top: 3%;"
                     ></Tubes>
                 </div>
+                <div class="button">
+                    <Button></Button>
+                </div>
             </div>
+        </div>
+        <div class="bodyPar2">
+            <deskSwitch></deskSwitch>
         </div>
     </div>
 </template>
@@ -70,8 +79,19 @@
                 .digitTube{
                     width: 100%;
                     height: 50%;
+                    overflow: hidden;
+                }
+                .button{
+                    width: 100%;
+                    height: 40%;
+                    margin-top: 3%;
                 }
             }
+        }
+        .bodyPar2{
+            width: 94%;
+            height: 22%;
+            margin-left: 3%;
         }
     }
 </style>
