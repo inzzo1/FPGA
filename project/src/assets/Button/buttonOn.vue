@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <svg width="73.000000" height="46.000000" viewBox="0 0 73 46" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg width="73.000000" height="46.000000" viewBox="0 0 73 46" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="buttonon">
         <desc>
                 Created with Pixso.
         </desc>
@@ -29,3 +29,9 @@
     </svg>
 
 </template>
+
+<style lang="scss" scoped>
+    .buttonon{
+        cursor: pointer;
+    }
+</style>

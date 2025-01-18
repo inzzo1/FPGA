@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <svg width="73.000000" height="46.000000" viewBox="0 0 73 46" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg width="73.000000" height="46.000000" viewBox="0 0 73 46" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="buttonoff">
         <desc>
                 Created with Pixso.
         </desc>
@@ -28,3 +28,9 @@
         <ellipse id="椭圆 3" cx="36.500000" cy="13.909088" rx="26.000000" ry="13.409090" stroke="#000000" stroke-opacity="0.050000" stroke-width="1.000000"/>
     </svg>
 </template>
+
+<style lang="scss" scoped>
+    .buttonoff{
+        cursor: pointer;
+    }
+</style>

@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <svg width="86.000000" height="38.000000" viewBox="0 0 86 38" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg width="86.000000" height="38.000000" viewBox="0 0 86 38" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="switchoff">
         <desc>
                 Created with Pixso.
         </desc>
@@ -43,3 +43,9 @@
         </g>
     </svg>
 </template>
+
+<style lang="scss" scoped>
+    .switchoff{
+        cursor: pointer;
+    }
+</style>

@@ -1,18 +1,43 @@
 <script setup lang="ts">
     import ButtonOn from '@/assets/Button/buttonOn.vue';
-    import buttonOff from '@/assets/Button/buttonOff.vue';
-import { ref } from 'vue';
+    import ButtonOff from '@/assets/Button/buttonOff.vue';
+    import { ref } from 'vue';
 
-    const buttonNumber = ref([9,8,7,6,5,4,3,2,1,0])
+    interface ButtonItem {
+        number: number;  // 原先你的按钮编号
+        state: boolean;  // 记录该按钮的开关状态
+    }
+
+    const buttonData = ref<ButtonItem[]>([
+        { number: 9, state: false },
+        { number: 8, state: false },
+        { number: 7, state: false },
+        { number: 6, state: false },
+        { number: 5, state: false },
+        { number: 4, state: false },
+        { number: 3, state: false },
+        { number: 2, state: false },
+        { number: 1, state: false },
+        { number: 0, state: false },
+    ]);
+    
+    //点击切换按钮状态
+    const toggleButton = (index: number) => {
+        buttonData.value[index].state = !buttonData.value[index].state;
+    };
 </script>
 
 <template>
         <div class="ButtonOutBg">
             <div class="lineFrame">
                 <div class="wrap">
-                    <div class="buttonFrame" v-for="(item, index) in buttonNumber" :key='index'>
-                        <ButtonOn style="width: 110%;height: auto;"></ButtonOn>
-                        <span>SWB0{{ item }}</span>
+                    <div class="buttonFrame" v-for="(item, index) in buttonData" :key='index'>
+                        <component
+                        :is="item.state ? ButtonOn : ButtonOff"
+                        @click="toggleButton(index)"
+                        style="width: 110%; height: auto;"
+                        />
+                        <span>SWB0{{ item.number }}</span>
                     </div>
                 </div>
             </div>
@@ -50,6 +75,7 @@ import { ref } from 'vue';
                     display: flex;
                     flex-wrap: wrap;
                     justify-content: center;
+                    user-select: none;
                     span{
                         margin-top: 20%;
                         color: #FBD400;

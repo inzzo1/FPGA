@@ -73,7 +73,7 @@
                         <input
                         v-model="inputForm.input3"
                         @input="formatInput(3)"
-                        @focus="hidePlaceholder"
+                        @focus="hidePlaceholder(3)"
                         @blur="showPlaceholder(3)"
                         :placeholder="placeholders.input3"
                         type="text"
@@ -90,7 +90,7 @@
                         <input
                         v-model="inputForm.input1"
                         @input="formatInput(1)"
-                        @focus="hidePlaceholder"
+                        @focus="hidePlaceholder(1)"
                         @blur="showPlaceholder(1)"
                         :placeholder="placeholders.input1"
                         type="text"
@@ -107,7 +107,7 @@
                         <input
                         v-model="inputForm.input2"
                         @input="formatInput(2)"
-                        @focus="hidePlaceholder"
+                        @focus="hidePlaceholder(2)"
                         @blur="showPlaceholder(2)"
                         :placeholder="placeholders.input2"
                         type="text"
@@ -124,7 +124,7 @@
                         <input
                         v-model="inputForm.input0"
                         @input="formatInput(0)"
-                        @focus="hidePlaceholder"
+                        @focus="hidePlaceholder(0)"
                         @blur="showPlaceholder(0)"
                         :placeholder="placeholders.input0"
                         type="text"
