@@ -134,7 +134,7 @@ const handleCancel = () => {
     </el-radio-group>
 
     <div>
-      <el-button class="button" type="warning" @click="dialogVisible = true">
+      <el-button class="button" type="warning" @click="dialogVBVisible = true">
         确 定
       </el-button>
     </div>
@@ -142,7 +142,7 @@ const handleCancel = () => {
     <!-- 虚拟板------弹出Dialog完成verilog上传和引脚绑定-->
     <el-dialog
       title="上传verilog源码并绑定引脚"
-      v-model="dialogVisible"
+      v-model="dialogVBVisible"
       @close="handleCancel"
       width="40%"
     >

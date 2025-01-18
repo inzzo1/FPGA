@@ -39,7 +39,7 @@ const login = async () => {
     formModel.value.username === 'testStudent' &&
     formModel.value.password === 'testStudent1234'
   ) {
-    userStore.setToken('mockToken')
+    userStore.setToken('mockToken') /////改！！！！！！！！！！！！！！！
     ElMessage.success('登录成功')
     router.push('/Board-selecting')
     return
