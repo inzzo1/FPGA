@@ -11,7 +11,11 @@
 <template>
     <div class="outline">
         <div class="outHeader">
-            <div class="chips"></div>
+            <div class="chips">
+                <img src="@/assets/MCU.png" alt="MCU.pic" class="MCU">
+                <img src="@/assets/resistance-group.png" alt="resistance-group.pic" class="resistance">
+                <img src="@/assets/chips.png" alt="chips.pic" class="innerChips">
+            </div>
             <div style="width: 50%; height: 100%;">
                 <Header 
                 :headerName= "'HDU-XL-CB502'"
@@ -30,6 +34,7 @@
             <div class="rightPart">
                 <div class="digitTube">
                     <Tubes
+                    :showNumber="99999999"
                     :isOutPut="false"
                     style="width: 100%; height: 120%; margin-top: 3%;"
                     ></Tubes>
@@ -61,6 +66,22 @@
             .chips{
                 width: 50%;
                 height: 100%;
+                position: relative;
+                .MCU{
+                    position: absolute;
+                    top: 10%;
+                    left: 1%;
+                }
+                .resistance{
+                    position: absolute;
+                    top: 15%;
+                    left: 40%;
+                }
+                .innerChips{
+                    position: absolute;
+                    top: 20%;
+                    left: 56%;
+                }
             }
         }
         .bodyPar1{

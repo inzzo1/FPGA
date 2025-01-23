@@ -1,17 +1,36 @@
 <script setup lang='ts'>
+    import { ref } from 'vue';
     import Tube from '../../tubes/tube.vue'
+    interface tubes{
+        tubeNumber: number,
+        isOutPut: boolean,
+        showNumber: number
+    }
+    
+    const tubeData = ref<tubes[]>(
+    [
+        {tubeNumber: 5, isOutPut: true, showNumber: 99999999},
+        {tubeNumber: 3, isOutPut: true, showNumber: 99999999},
+        {tubeNumber: 1, isOutPut: true, showNumber: 99999999},
+        {tubeNumber: 4, isOutPut: true, showNumber: 99999999},
+        {tubeNumber: 2, isOutPut: true, showNumber: 99999999},
+        {tubeNumber: 0, isOutPut: true, showNumber: 99999999}
+    ]
+    )
+
 </script>
     
 <template>
     <div class="tubeOutBg">
         <div class="lineFrame">
             <div class="wrap">
-                <Tube :tubeNumber="5" :isOutPut="true"></Tube>
-                <Tube :tubeNumber="3" :isOutPut="true"></Tube>
-                <Tube :tubeNumber="1" :isOutPut="true"></Tube>
-                <Tube :tubeNumber="4" :isOutPut="true"></Tube>
-                <Tube :tubeNumber="2" :isOutPut="true"></Tube>
-                <Tube :tubeNumber="0" :isOutPut="true"></Tube>
+                <Tube 
+                v-for="(item, index) in tubeData" 
+                :key="index" 
+                :tubeNumber="item.tubeNumber" 
+                :isOutPut="item.isOutPut"
+                :showNumber="item.showNumber"
+                ></Tube>
             </div>
             <!-- <Digit1>
             </Digit1> -->
