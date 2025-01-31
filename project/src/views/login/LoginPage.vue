@@ -40,8 +40,8 @@ if (router.currentRoute.value.path === '/register') {
 
 <style lang="scss" scoped>
 %bg {
-  background-color: rgb(220, 236, 236);
-  background-image: url('@/src/assets/pictures/背景-light.png');
+  // background-color: rgb(220, 236, 236);
+  background-image: url('../../src/assets/pictures/背景-blue.jpg');
 }
 
 .login-page {

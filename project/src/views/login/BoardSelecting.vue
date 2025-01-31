@@ -123,8 +123,15 @@ const handleCancel = () => {
       </el-radio-button>
 
       <!-- 实物板 -->
-      <el-radio-button class="board" :label="'real'">
+      <el-radio-button
+        class="board"
+        :label="'real'"
+        :disabled="userStore.userRole === 'guest'"
+      >
         <h2>实物板</h2>
+        <!-- <div v-if="userStore.userRole === 'guest'" class="overlay">
+          请登录后使用
+        </div> -->
         <img
           src="@/assets/pictures/实物板-样例图.png"
           alt="实物板"
@@ -354,6 +361,19 @@ h3 {
 
 .dialog-footer {
   display: flex;
+}
+
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* 灰色遮罩 */
+  color: white;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
 @media (max-width: 768px) {

@@ -15,6 +15,7 @@ const formModel = ref({
   username: '',
   password: '',
   captcha: '',
+  role: 'guest',
 })
 const rules = {
   username: [
@@ -34,21 +35,28 @@ const rules = {
 //纯前端版本
 const login = async () => {
   await form.value.validate()
-  //用testID跳转
-  if (
-    formModel.value.username === 'testStudent' &&
-    formModel.value.password === 'testStudent1234'
-  ) {
-    userStore.setToken('mockToken') /////改！！！！！！！！！！！！！！！
-    ElMessage.success('登录成功')
-    router.push('/Board-selecting')
-    return
-  }
+  // //用testID跳转
+  // if (
+  //   formModel.value.username === 'testStudent' &&
+  //   formModel.value.password === 'testStudent1234'
+  // ) {
+  //   userStore.setToken('mockToken')
+  //   userStore.setRole(formModel.value.role)
+  //   ElMessage.success('登录成功')
+  //   router.push('/Board-selecting')
+  //   return
+  // }
   //正经跳转
   const res = await userLoginService(formModel.value)
   userStore.setToken(res.data.token)
+  userStore.setRole(formModel.value.role)
+
+  // 记录登录时间
+  userStore.recordLogin()
+
   ElMessage.success('登录成功')
-  router.push('/')
+
+  router.push('/Board-selecting')
 }
 
 //等后端来了换成这一段
@@ -114,6 +122,14 @@ const login = async () => {
         type="password"
         placeholder="请输入密码"
       ></el-input>
+    </el-form-item>
+    <el-form-item prop="role" label="角色">
+      <el-radio-group v-model="formModel.role">
+        <el-radio label="student">学生</el-radio>
+        <el-radio label="teacher">教师</el-radio>
+        <el-radio label="guest">游客</el-radio>
+        <el-radio label="admin">管理员</el-radio>
+      </el-radio-group>
     </el-form-item>
     <el-form-item class="flex">
       <div class="flex">
