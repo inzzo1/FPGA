@@ -24,10 +24,11 @@
     
 <style lang="scss" scoped>
     .outline{
-        width: 50%;
-        height: 60%;
+        width: 100%;
+        height: 100%;
         background-color: #343434;
         border-radius: 20px;
         overflow: hidden;
+        box-shadow: 10px 10px 15px 0px rgba(0, 0, 0, 0.8);
     }
 </style>
