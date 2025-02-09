@@ -33,6 +33,11 @@ const router = createRouter({
       path: '/RealBoard',
       component: () => import('@/views/RealBoard.vue'),
     },
+    {
+      path: '/teacher-dashboard',
+      component: () => import('@/views/TeacherDashboard.vue'),
+      meta: { requiresAuth: true, role: 'teacher' },
+    },
   ],
 })
 

@@ -18,6 +18,7 @@ const registerForm = ref({
   password: '',
   confirmPassword: '',
   captcha: '',
+  role: 'student', // 添加角色字段，默认为学生
 })
 
 // 整个表单的校验规则
@@ -75,19 +76,19 @@ const rules = {
 //纯前端版本
 const regButton = async () => {
   await form.value.validate()
-  //用testID跳转
   if (
     registerForm.value.username === 'testStudent' &&
     registerForm.value.password === 'testStudent1234'
   ) {
     userStore.setToken('mockToken')
+    userStore.setRole(registerForm.value.role) // 设置用户角色
     ElMessage.success('注册成功，请选择板子')
     router.push('/Board-selecting')
     return
   }
-  //正经跳转
   const res = await userRegisterService(registerForm.value)
   userStore.setToken(res.data.token)
+  userStore.setRole(registerForm.value.role) // 设置用户角色
   ElMessage.success('注册成功，请选择板子')
   router.push('/Board-selecting')
 }
@@ -164,6 +165,13 @@ const regButton = async () => {
         type="password"
         placeholder="请输入再次密码"
       ></el-input>
+    </el-form-item>
+    <el-form-item prop="role" label="角色">
+      <el-radio-group v-model="registerForm.role">
+        <el-radio label="student">学生</el-radio>
+        <el-radio label="teacher">教师</el-radio>
+        <el-radio label="guest">游客</el-radio>
+      </el-radio-group>
     </el-form-item>
     <el-form-item>
       <el-button
