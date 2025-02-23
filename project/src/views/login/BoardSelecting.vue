@@ -123,11 +123,7 @@ const handleCancel = () => {
       </el-radio-button>
 
       <!-- 实物板 -->
-      <el-radio-button
-        class="board"
-        :label="'real'"
-        :disabled="userStore.userRole === 'guest'"
-      >
+      <el-radio-button class="board" :label="'real'">
         <h2>实物板</h2>
         <!-- <div v-if="userStore.userRole === 'guest'" class="overlay">
           请登录后使用
@@ -233,8 +229,14 @@ const handleCancel = () => {
 </template>
 
 <style lang="scss">
+%bg {
+  background-image: url('../../src/assets/bg-dyn-light.png');
+}
+
 .page-container {
   font-family: Arial, sans-serif;
+  height: 100vh;
+  @extend %bg;
 }
 
 h1 {
@@ -279,11 +281,12 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f5f5f5;
+  // background-color: #f5f5f5;
   border: 1px solid #ddd;
   border-radius: 10px;
   width: 45%;
   box-shadow: 0 2px 5px rgba(23, 17, 17, 0.1);
+  --el-color-primary: #924141;
 }
 
 .board-img {
@@ -363,18 +366,18 @@ h3 {
   display: flex;
 }
 
-.overlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* 灰色遮罩 */
-  color: white;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
+// .overlay {
+//   position: absolute;
+//   width: 100%;
+//   height: 100%;
+//   background: rgba(0, 0, 0, 0.5); /* 灰色遮罩 */
+//   color: white;
+//   font-size: 18px;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   font-weight: bold;
+// }
 
 @media (max-width: 768px) {
   .content {

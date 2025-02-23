@@ -2,13 +2,26 @@
 import { userLoginService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ref } from 'vue'
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/modules/users'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+
 const form = ref()
+const Schooloptions = ref([])
 
 const userStore = useUserStore()
 const router = useRouter()
+
+// // 等后端数据------渲染Schooloptions的学校列表，渲染完成后页面显示--暂时会显示服务异常
+// import { onMounted } from 'vue'
+// import { getSchoolsService } from '@/api/user.js'
+// onMounted(async () => {
+//   const res = await getSchoolsService()
+//   Schooloptions.value = res.data.result.object.map(item => ({
+//     label: item.name,
+//     value: item.id,
+//   }))
+// })
 
 const formModel = ref({
   school: '',
@@ -32,7 +45,7 @@ const rules = {
   ],
 }
 
-//纯前端版本
+//登录操作
 const login = async () => {
   await form.value.validate()
   // //用testID跳转
@@ -46,27 +59,20 @@ const login = async () => {
   //   router.push('/Board-selecting')
   //   return
   // }
+
   //正经跳转
   const res = await userLoginService(formModel.value)
-  userStore.setToken(res.data.token)
-  userStore.setRole(formModel.value.role)
+  if (res.data.code === 0) {
+    userStore.setToken(res.data.token) // 保存 token
+    userStore.setRole(formModel.value.role)
+    userStore.recordLogin() // 记录登录时间
 
-  // 记录登录时间
-  userStore.recordLogin()
-
-  ElMessage.success('登录成功')
-
-  router.push('/Board-selecting')
+    ElMessage.success('登录成功')
+    router.push('/Board-selecting')
+  } else {
+    ElMessage.error(res.data.message || '登录失败，请重试')
+  }
 }
-
-//等后端来了换成这一段
-// const login = async () => {
-//   await form.value.validate()
-//   const res = await userLoginService(formModel.value)
-//   userStore.setToken(res.data.token)
-//   ElMessage.success('登录成功')
-//   router.push('/')
-// }
 </script>
 
 <template>
@@ -91,10 +97,10 @@ const login = async () => {
       </div>
     </el-form-item>
 
-    <el-form-item prop="schlool" label="学校">
+    <el-form-item prop="school" label="学校">
       <el-select
-        v-model="value"
-        placeholder="Select"
+        v-model="formModel.school"
+        placeholder="请选择学校"
         size="large"
         style="width: 240px"
       >
@@ -146,11 +152,6 @@ const login = async () => {
 </template>
 
 <style lang="scss" scoped>
-%bg {
-  background-color: rgb(220, 236, 236);
-  background-image: url('@/src/assets/pictures/背景-light.png');
-}
-
 .form {
   display: flex;
   flex-direction: column;

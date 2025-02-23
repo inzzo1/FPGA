@@ -2,14 +2,26 @@
 import { userRegisterService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ref } from 'vue'
-import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/modules/users'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
+const Schooloptions = ref([])
 const form = ref()
 
 const userStore = useUserStore()
 const router = useRouter()
+
+// // 等后端数据------渲染Schooloptions的学校列表，渲染完成后页面显示
+// import { onMounted } from 'vue'
+// import { getSchoolsService } from '@/api/user.js'
+// onMounted(async () => {
+//   const res = await getSchoolsService()
+//   Schooloptions.value = res.data.result.object.map(item => ({
+//     label: item.name,
+//     value: item.id,
+//   }))
+// })
 
 // 注册表单数据
 const registerForm = ref({
@@ -73,34 +85,22 @@ const rules = {
 //   ElMessage.success('注册成功')
 // }
 
-//纯前端版本
+// 注册操作
 const regButton = async () => {
   await form.value.validate()
-  if (
-    registerForm.value.username === 'testStudent' &&
-    registerForm.value.password === 'testStudent1234'
-  ) {
-    userStore.setToken('mockToken')
-    userStore.setRole(registerForm.value.role) // 设置用户角色
+
+  const res = await userRegisterService(registerForm.value)
+
+  if (res.data.code === 0) {
+    userStore.setToken(res.data.token) // 保存 token
+    userStore.setRole(registerForm.value.role)
+
     ElMessage.success('注册成功，请选择板子')
     router.push('/Board-selecting')
-    return
+  } else {
+    ElMessage.error(res.data.message || '注册失败，请重试')
   }
-  const res = await userRegisterService(registerForm.value)
-  userStore.setToken(res.data.token)
-  userStore.setRole(registerForm.value.role) // 设置用户角色
-  ElMessage.success('注册成功，请选择板子')
-  router.push('/Board-selecting')
 }
-
-//等后端来了换成这一段
-// const login = async () => {
-//   await form.value.validate()
-//   const res = await userLoginService(formModel.value)
-//   userStore.setToken(res.data.token)
-//   ElMessage.success('注册成功')
-//   router.push('/Board-selecting')
-// }
 </script>
 
 <template>
@@ -125,9 +125,9 @@ const regButton = async () => {
       </div>
     </el-form-item>
 
-    <el-form-item prop="schlool" label="学校">
+    <el-form-item prop="school" label="学校">
       <el-select
-        v-model="value"
+        v-model="registerForm.school"
         placeholder="Select"
         size="large"
         style="width: 240px"
@@ -187,11 +187,6 @@ const regButton = async () => {
 </template>
 
 <style lang="scss" scoped>
-%bg {
-  background-color: rgb(220, 236, 236);
-  background-image: url('@/src/assets/pictures/背景-light.png');
-}
-
 .form {
   display: flex;
   flex-direction: column;
