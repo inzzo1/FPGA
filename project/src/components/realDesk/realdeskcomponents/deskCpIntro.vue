@@ -74,7 +74,7 @@
                     align-items: center;
                     span{
                     color: white;
-                    font-size: 10px;
+                    font-size: 9px;
                     }
                 }
             }
