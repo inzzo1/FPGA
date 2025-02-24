@@ -37,7 +37,7 @@
     display: flex;
     align-items: center;
     .headerBg{
-      width: 50%;
+      width: 100%;
       height: 60%;
       background-color: rgb(226, 226, 226);
       border-radius: 40px;

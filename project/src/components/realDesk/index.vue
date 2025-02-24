@@ -52,11 +52,12 @@
 
 <style lang="scss" scoped>
     .outline{
-        width: 50%;
-        height: 60%;
+        width: 98%;
+        height: 100%;
         background-color: #343434;
         border-radius: 20px;
         overflow: hidden;
+        box-shadow: 10px 10px 15px 0px rgba(0, 0, 0, 0.8);
         .outHeader{
             width: 94%;
             height: 30%;
@@ -70,17 +71,18 @@
                 .MCU{
                     position: absolute;
                     top: 10%;
-                    left: 1%;
+                    left: 0;
                 }
                 .resistance{
+                    width: 55%;
                     position: absolute;
-                    top: 15%;
+                    top: 20%;
                     left: 40%;
                 }
                 .innerChips{
                     position: absolute;
                     top: 20%;
-                    left: 56%;
+                    left: 53%;
                 }
             }
         }

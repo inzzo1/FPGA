@@ -41,10 +41,10 @@ import upLoad from '@/components/upLoad.vue';
   position: relative;
   overflow: hidden;
   .header{
-    width: 92%;
+    width: 46%;
     height: 15%;
-    margin: 0 auto;
     margin-top: 1%;
+    margin-left: 4%;
   }
   .bdPart{
     width: 92%;
