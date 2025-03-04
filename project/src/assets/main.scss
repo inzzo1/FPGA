@@ -16,7 +16,9 @@ body {
   margin: 0;
   background-image: url('@/src/assets/pictures/背景-light.png');
 }
-
+:root {
+  --el-color-primary: green;
+}
 /* fade-slide */
 .fade-slide-leave-active,
 .fade-slide-enter-active {

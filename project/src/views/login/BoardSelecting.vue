@@ -89,7 +89,6 @@ const handleCancel = () => {
 
 <template>
   <div class="page-container">
-
     <!-- 内容区 -->
     <h1>请选择您的实验板</h1>
     <el-radio-group class="boardselecting-content" v-model="boardselecting">
@@ -212,6 +211,10 @@ const handleCancel = () => {
 <style lang="scss">
 %bg {
   background-image: url('../../src/assets/bg-dyn-light.png');
+}
+
+:deep() {
+  --el-color-primary: #924141 !important;
 }
 
 .page-container {

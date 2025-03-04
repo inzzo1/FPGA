@@ -1,3 +1,4 @@
+######LoginForm.vue########
 <script setup>
 import { userLoginService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
@@ -48,17 +49,17 @@ const rules = {
 //登录操作
 const login = async () => {
   await form.value.validate()
-  // //用testID跳转
-  // if (
-  //   formModel.value.username === 'testStudent' &&
-  //   formModel.value.password === 'testStudent1234'
-  // ) {
-  //   userStore.setToken('mockToken')
-  //   userStore.setRole(formModel.value.role)
-  //   ElMessage.success('登录成功')
-  //   router.push('/Board-selecting')
-  //   return
-  // }
+  //用testID跳转
+  if (
+    formModel.value.username === 'testStudent' &&
+    formModel.value.password === 'testStudent1234'
+  ) {
+    userStore.setToken('mockToken')
+    userStore.setRole(formModel.value.role)
+    ElMessage.success('登录成功')
+    router.push('/Board-selecting')
+    return
+  }
 
   //正经跳转
   const res = await userLoginService(formModel.value)
@@ -74,27 +75,24 @@ const login = async () => {
   }
 }
 </script>
-
 <template>
-  <!-- 校验相关
-       (1) el-form => :model="ruleForm"      绑定的整个form的数据对象 { xxx, xxx, xxx }
-       (2) el-form => :rules="rules"         绑定的整个rules规则对象  { xxx, xxx, xxx }
-       (3) 表单元素 => v-model="ruleForm.xxx" 给表单元素，绑定form的子属性
-       (4) el-form-item => prop配置生效的是哪个校验规则 (和rules中的字段要对应)
-  -->
   <el-form
+    class="form-container"
     :model="formModel"
     :rules="rules"
     ref="form"
     size="large"
     autocomplete="off"
-    label-width="auto"
-    style="max-width: 600px"
+    label-position="top"
   >
     <el-form-item>
-      <div>
-        <img src="@/assets/pictures/杭州电子科技大学logo2.png" width="100%" />
-      </div>
+      <!-- <div class="logo-container">
+        <img
+          src="@/assets/pictures/杭州电子科技大学logo2.png"
+          alt="学校logo"
+          class="logo"
+        />
+      </div> -->
     </el-form-item>
 
     <el-form-item prop="school" label="学校">
@@ -102,7 +100,7 @@ const login = async () => {
         v-model="formModel.school"
         placeholder="请选择学校"
         size="large"
-        style="width: 240px"
+        class="full-width"
       >
         <el-option
           v-for="item in Schooloptions"
@@ -120,50 +118,110 @@ const login = async () => {
         placeholder="请输入用户名"
       ></el-input>
     </el-form-item>
+
     <el-form-item prop="password" label="密码">
       <el-input
         v-model="formModel.password"
-        name="password"
         :prefix-icon="Lock"
         type="password"
         placeholder="请输入密码"
       ></el-input>
     </el-form-item>
+
     <el-form-item prop="role" label="角色">
-      <el-radio-group v-model="formModel.role">
+      <el-radio-group v-model="formModel.role" class="role-group">
         <el-radio label="student">学生</el-radio>
         <el-radio label="teacher">教师</el-radio>
         <el-radio label="guest">游客</el-radio>
         <el-radio label="admin">管理员</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item class="flex">
-      <div class="flex">
+
+    <el-form-item class="remember-forgot">
+      <div class="flex-between">
         <el-checkbox>记住我</el-checkbox>
         <el-link type="primary" :underline="false">忘记密码？</el-link>
       </div>
     </el-form-item>
-    <el-form-item>
-      <el-button @click="login" class="button" type="primary" auto-insert-space>
-        登录</el-button
+
+    <el-form-item class="submit-item">
+      <el-button
+        @click="login"
+        class="submit-button"
+        type="primary"
+        auto-insert-space
       >
+        登录
+      </el-button>
     </el-form-item>
   </el-form>
 </template>
 
 <style lang="scss" scoped>
-.form {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  user-select: none;
-  .button {
+.form-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+
+  .logo-container {
+    text-align: center;
+    .logo {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  .full-width {
     width: 100%;
   }
-  .flex {
+
+  .role-group {
     width: 100%;
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .remember-forgot {
+    margin-bottom: 12px;
+    .flex-between {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+
+  .submit-item {
+    margin-top: 24px;
+    :deep(.el-form-item__content) {
+      justify-content: center;
+    }
+  }
+
+  .submit-button {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    transition: all 0.3s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 15px;
+    box-shadow: none;
+
+    .role-group {
+      flex-direction: column;
+      gap: 8px;
+    }
   }
 }
 </style>

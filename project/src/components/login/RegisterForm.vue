@@ -1,3 +1,4 @@
+######RegisterForm.vue########
 <script setup>
 import { userRegisterService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
@@ -116,13 +117,17 @@ const regButton = async () => {
     ref="form"
     size="large"
     autocomplete="off"
-    label-width="auto"
-    style="max-width: 600px"
+    label-position="top"
+    class="form-container"
   >
     <el-form-item>
-      <div>
-        <img src="@/assets/pictures/杭州电子科技大学logo2.png" width="100%" />
-      </div>
+      <!-- <div class="logo-container">
+        <img
+          src="@/assets/pictures/杭州电子科技大学logo2.png"
+          alt="学校logo"
+          class="logo"
+        />
+      </div> -->
     </el-form-item>
 
     <el-form-item prop="school" label="学校">
@@ -130,7 +135,7 @@ const regButton = async () => {
         v-model="registerForm.school"
         placeholder="Select"
         size="large"
-        style="width: 240px"
+        class="full-width"
       >
         <el-option
           v-for="item in Schooloptions"
@@ -167,7 +172,7 @@ const regButton = async () => {
       ></el-input>
     </el-form-item>
     <el-form-item prop="role" label="角色">
-      <el-radio-group v-model="registerForm.role">
+      <el-radio-group v-model="registerForm.role" class="role-group">
         <el-radio label="student">学生</el-radio>
         <el-radio label="teacher">教师</el-radio>
         <el-radio label="guest">游客</el-radio>
@@ -176,7 +181,7 @@ const regButton = async () => {
     <el-form-item>
       <el-button
         @click="regButton"
-        class="button"
+        class="submit-button"
         type="primary"
         auto-insert-space
       >
@@ -187,19 +192,75 @@ const regButton = async () => {
 </template>
 
 <style lang="scss" scoped>
-.form {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  user-select: none;
+.form-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
 
-  .button {
+  .logo-container {
+    text-align: center;
+    .logo {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  .full-width {
     width: 100%;
   }
-  .flex {
+
+  .role-group {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .submit-item {
+    margin-top: 24px;
+    :deep(.el-form-item__content) {
+      justify-content: center;
+    }
+  }
+
+  .submit-button {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    transition: all 0.3s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 15px;
+    box-shadow: none;
+
+    .role-group {
+      flex-direction: column;
+      gap: 8px;
+    }
   }
 }
+// .form {
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: center;
+//   user-select: none;
+
+//   .button {
+//     width: 100%;
+//   }
+//   .flex {
+//     width: 100%;
+//     display: flex;
+//     justify-content: space-between;
+//   }
+// }
 </style>

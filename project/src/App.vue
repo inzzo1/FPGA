@@ -14,7 +14,7 @@
     <el-header class="header">
       <div class="logo">
         <img
-          src="@/assets/pictures/杭州电子科技大学logo2.png"
+          src="@/assets/pictures/SchoolLogo.png"
           alt="Logo"
           class="logo-img"
         />
