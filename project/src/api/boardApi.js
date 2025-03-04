@@ -1,5 +1,4 @@
 import request from '@/utils/request'
-import { ta } from 'element-plus/es/locale'
 
 //get
 export const getLight = () => {

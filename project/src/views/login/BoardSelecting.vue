@@ -89,25 +89,6 @@ const handleCancel = () => {
 
 <template>
   <div class="page-container">
-    <!-- 顶部导航栏 -->
-    <el-header class="header">
-      <div class="logo">
-        <img
-          src="@/assets/pictures/杭州电子科技大学logo2.png"
-          alt="Logo"
-          class="logo-img"
-        />
-      </div>
-      <el-menu mode="horizontal" class="menu">
-        <el-menu-item index="1">首页</el-menu-item>
-        <el-menu-item index="2">实验</el-menu-item>
-        <el-menu-item index="3">团队</el-menu-item>
-        <el-menu-item index="4">数据</el-menu-item>
-      </el-menu>
-      <div class="user-info">
-        欢迎您, <span class="username">testStudent</span>
-      </div>
-    </el-header>
 
     <!-- 内容区 -->
     <h1>请选择您的实验板</h1>
@@ -241,33 +222,6 @@ const handleCancel = () => {
 
 h1 {
   text-align: center;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #f5f5f5;
-  padding: 10px 20px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-}
-
-.logo-img {
-  width: 200px;
-  margin-right: 10px;
-}
-
-.menu {
-  flex-grow: 1;
-  margin-left: 20px;
-}
-
-.user-info {
-  font-size: 16px;
 }
 
 .boardselecting-content {
