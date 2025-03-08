@@ -9,8 +9,8 @@
 
 <template>
      <div class="header">
-        <span style="font-size: 24px;">杭州电子科技大学</span>
-        <span style="font-size: 16px;">{{ props.headerName }}</span>
+        <span style="font-size: 2vw;">杭州电子科技大学</span>
+        <span style="font-size: 2vw;">{{ props.headerName }}</span>
      </div>
 </template>
     

@@ -67,7 +67,7 @@
         position: relative;
         .lineFrame{
             width: 100%;
-            height: 90%;
+            height: 88%;
             margin-top: calc(38% * 5 / 100);
             border-radius: 14px;
             border: 1.5px dashed white;
@@ -90,7 +90,7 @@
                     span{
                         padding-top: 50%;
                         color: #4CA2FF;
-                        font-size: 6px;
+                        font-size: 8px;
                     }
                 }
             }
@@ -100,7 +100,7 @@
             position: absolute;
             top: -3%;
             left: 5%;
-            font-size: 14px;
+            font-size: 18px;
             background-color: #343434;
         }
         }

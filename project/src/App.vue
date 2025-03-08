@@ -29,7 +29,7 @@
         欢迎您, <span class="username">testStudent</span>
       </div>
     </el-header>
-    <router-view />
+    <router-view style="height: 93%;"/>
   </div>
 </template>
 
@@ -39,7 +39,7 @@
   justify-content: space-between;
   align-items: center;
   background-color: #f5f5f5;
-  padding: 10px 20px;
+  height: 7%;
 }
 
 .logo {

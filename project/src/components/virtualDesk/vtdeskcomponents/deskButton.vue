@@ -79,7 +79,7 @@
                     span{
                         margin-top: 20%;
                         color: #FBD400;
-                        font-size: 6px;
+                        font-size: 9px;
                         font-weight: 400;
                     }
                 }
@@ -88,9 +88,9 @@
         > span{
             color: white;
             position: absolute;
-            top: -3%;
+            top: -4%;
             left: 5%;
-            font-size: 14px;
+            font-size: 18px;
             background-color: #343434;
         }
         }

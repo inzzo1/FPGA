@@ -35,7 +35,7 @@
                 ></Digit>
             </div>
         </div>
-        <span v-if="props.isOutPut">Output0{{ props.tubeNumber }}</span>
+        <span v-if="props.isOutPut" :style="{fontSize: props.isOutPut? '12px' : '8px'}">Output0{{ props.tubeNumber }}</span>
     </div>
 </template>
 
@@ -62,7 +62,6 @@
                     }
                 }
                 span{
-                    font-size: 8px;
                     color: white;
                 }
             }

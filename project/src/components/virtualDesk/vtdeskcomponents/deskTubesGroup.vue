@@ -70,8 +70,8 @@
             color: white;
             position: absolute;
             top: 1%;
-            left: 5%;
-            font-size: 14px;
+            left: 4%;
+            font-size: 20px;
             background-color: #343434;
         }
     }

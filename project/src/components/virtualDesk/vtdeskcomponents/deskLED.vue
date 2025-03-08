@@ -52,7 +52,7 @@ import { ref } from 'vue';
                     justify-content: center;
                     margin-top: 2%;
                     span{
-                        font-size: 7px;
+                        font-size: 10px;
                         font-weight: 600;
                         color: #09EDFF;
                         margin-top: 20%;
@@ -65,7 +65,7 @@ import { ref } from 'vue';
             position: absolute;
             top: -3%;
             left: 5%;
-            font-size: 14px;
+            font-size: 18px;
             background-color: #343434;
         }
     }

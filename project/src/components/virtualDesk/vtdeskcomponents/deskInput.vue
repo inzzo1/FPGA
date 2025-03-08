@@ -162,31 +162,33 @@
                 display: flex;
                 flex-wrap: wrap;
                 .inputOutBox{
-                    width: 50%;
+                    width: 48%;
                     height: 50%;
                     background-color: #343434;
                     display: flex;
                     flex-wrap: nowrap;
+                    justify-content: space-around;
                     align-items: center;
                     > span{
                         width: 40%;
                         color: white;
-                        font-size: 13px;
+                        font-size: 18px;
                     }
                     .inputInnerBox{
                         height: 60%;
                         background-color: #6D6D6D;
                         border-radius: 5px;
                         display: flex;
+                        align-items: center;
                         span{
                             margin-left: 3%;
                             color: black;
-                            font-size: 13px;
+                            font-size: 17px;
                         }
                         input{
-                            font-size: 14px;
-                            width: 77%;
-                            margin-left: 3%;
+                            font-size: 17px;
+                            width: 75%;
+                            margin-left: 4%;
                             border-radius: 5px;
                             padding: 0 6%;
                             border: none;
@@ -203,9 +205,9 @@
         > span{
             color: white;
             position: absolute;
-            top: -1%;
+            top: -3%;
             left: 5%;
-            font-size: 14px;
+            font-size: 18px;
             background-color: #343434;
         }
     }
