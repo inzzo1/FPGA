@@ -104,6 +104,6 @@ export const loadHistory = (tag) => {
     return request.post('/fpga/cb/loadHistory',{},{params})
 }
 
-export const simulate = (verilogFile, bindFile) => {
-    return request.post('/fpga/simulate',)
+export const simulate = (formData) => {
+    return request.post('/fpga/simulate',formData)
 }

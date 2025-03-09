@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import VitualDesk from '@/components/virtualDesk/index.vue';
 import stateHeader from '@/components/header/stateHeader.vue';
-import { UploadUserFile } from 'element-plus';
+import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
+import {simulate} from '@/api/boardApi'
 
 interface Row {
   input: string;
   chains: string[];
 }
+
+const uploadDisabled = ref(false);
 
 const inputRows = ref<Row[]>([
   {
@@ -341,20 +344,61 @@ const fileList = ref<UploadUserFile[]>(
 );
 
 const beforeUpload = (file: File) => {
-  console.log('File selected:', file);  // 可选，查看选中的文件
-  return false;  // 返回 false，防止自动上传
+  console.log('File selected:', file);
+  if (!file.name.toLowerCase().endsWith('.v')) {
+    ElMessageBox.alert('请选择 .v 文件', '文件格式错误', {
+      confirmButtonText: '确定',
+      type: 'error'
+    });
+    return false; // 阻止上传
+  }
+  
+  // 手动添加文件到 fileList
+  fileList.value.push({
+    name: file.name,
+    percentage: 0,
+    status: 'ready',
+    size: file.size,
+    raw: file,
+    uid: Date.now(), // 生成一个唯一的 uid
+  });
+  
+  ElMessageBox.alert('上传成功', '提示', {
+    confirmButtonText: '确定'
+  }).then(() => {
+    // 当用户点击“确定”后，禁用上传按钮
+    uploadDisabled.value = true;
+  });
+
+  
+  return false;  // 阻止自动上传
 };
 
 const isStart = ref(true)
 
 const startExp = () => {
-  isStart.value = !isStart.value
   const bindData = {
     inputRows: inputRows.value,
     outputRows: outputRows.value
   };
   const formData = new FormData();
   const bindBlob = new Blob([JSON.stringify(bindData)], { type: 'application/json' });
+
+  if (fileList.value.length > 0 && fileList.value[0].raw) {
+    formData.append('verilogFile', fileList.value[0].raw);
+  } else {
+    ElMessageBox.alert('请选择 .v 文件', '文件格式错误', {
+      confirmButtonText: '确定',
+      type: 'error'
+    });
+
+    return;
+  }
+
+  formData.append('bindFile', bindBlob, 'bind.json');
+  
+  simulate(formData)
+  isStart.value = !isStart.value
 }
 
 const endExp = () => {
@@ -377,14 +421,15 @@ const endExp = () => {
         <div class="bindBox">
           <div class="bindHeader">
             <el-upload
-            v-model:file-list="fileList"
+            :file-list="fileList"
             multiple
             :before-upload="beforeUpload"
+            :disabled="uploadDisabled"
             class="UploadBt"
             >
-              <el-button type="primary" style="width: 100%;height: 100%;">上传.V</el-button>
+              <el-button type="warning" style="width: 100%;height: 100%;" :disabled="uploadDisabled">上传.V</el-button>
             </el-upload>
-            <el-button type="success" style="width: 35%;height: 100%;" v-if="isStart" @click="startExp">
+            <el-button type="danger" style="width: 35%;height: 100%;" v-if="isStart" @click="startExp">
               开始实验
             </el-button>
             <el-button type="danger" style="width: 35%;height: 100%;" v-if="!isStart" @click="endExp">
@@ -412,8 +457,8 @@ const endExp = () => {
                     </div>
                     <!-- 点击加号新增一行 -->
                     <div>
-                      <el-button @click="addInputRow" :icon="Plus" type="primary" style="width: 10%; height: 10%;"></el-button>
-                      <el-button @click="removeInputRow(rowIndex)" :icon="Minus" type="primary" :disabled="inputRows.length <= 1" style="width: 10%; height: 20%;"></el-button>
+                      <el-button @click="addInputRow" :icon="Plus" style="width: 10%; height: 10%;"></el-button>
+                      <el-button @click="removeInputRow(rowIndex)" :icon="Minus" :disabled="inputRows.length <= 1" style="width: 10%; height: 20%;"></el-button>
                     </div>
                   </div>
                   
@@ -531,11 +576,12 @@ const endExp = () => {
       height: 100%;
       display: flex;
       flex-direction: row-reverse;
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
       .bindBox{
         width: 90%;
         height: 100%;
         border-radius: 30px;
-        background-color: #f6f6f6;
+        background-color: rgba(246, 246, 246, 0.9);
         .bindHeader{
           width: 90%;
           height: 7%;
@@ -580,6 +626,10 @@ const endExp = () => {
                 }
                 button{
                   margin: 1px;
+                }
+                .el-button{
+                  background-color: rgb(185, 178, 178);
+                  color: white;
                 }
               }
               .chain-part {
