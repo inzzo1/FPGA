@@ -107,3 +107,7 @@ export const loadHistory = (tag) => {
 export const simulate = (formData) => {
     return request.post('/fpga/simulate',formData)
 }
+
+export const stop = () => {
+    return request.post('/fpga/stop')
+}

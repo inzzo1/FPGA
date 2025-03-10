@@ -1,0 +1,287 @@
+{
+    "inputOptions": [
+        {
+            "label": "SW",
+            "children": [
+              {
+                "value": "SW00",
+                "label": "SW00"
+              },
+              {
+                "value": "SW01",
+                "label": "SW01"
+              },
+              {
+                "value": "SW02",
+                "label": "SW02"
+              },
+              {
+                "value": "SW03",
+                "label": "SW03"
+              },
+              {
+                "value": "SW04",
+                "label": "SW04"
+              },
+              {
+                "value": "SW05",
+                "label": "SW05"
+              },
+              {
+                "value": "SW06",
+                "label": "SW06"
+              },
+              {
+                "value": "SW07",
+                "label": "SW07"
+              },
+              {
+                "value": "SW08",
+                "label": "SW08"
+              },
+              {
+                "value": "SW09",
+                "label": "SW09"
+              },
+              {
+                "value": "SW10",
+                "label": "SW10"
+              },
+              {
+                "value": "SW11",
+                "label": "SW11"
+              },
+              {
+                "value": "SW12",
+                "label": "SW12"
+              },
+              {
+                "value": "SW13",
+                "label": "SW13"
+              },
+              {
+                "value": "SW14",
+                "label": "SW14"
+              },
+              {
+                "value": "SW15",
+                "label": "SW15"
+              },
+              {
+                "value": "SW16",
+                "label": "SW16"
+              },
+              {
+                "value": "SW17",
+                "label": "SW17"
+              },
+              {
+                "value": "SW18",
+                "label": "SW18"
+              },
+              {
+                "value": "SW19",
+                "label": "SW19"
+              }
+            ]
+          },
+          {
+            "label": "SWB",
+            "children":[
+              {
+                "value": "SWB00",
+                "label": "SWB00"
+              },
+              {
+                "value": "SWB01",
+                "label": "SWB01"
+              },
+              {
+                "value": "SWB02",
+                "label": "SWB02"
+              },
+              {
+                "value": "SWB03",
+                "label": "SWB03"
+              },
+              {
+                "value": "SWB04",
+                "label": "SWB04"
+              },
+              {
+                "value": "SWB05",
+                "label": "SWB05"
+              },
+              {
+                "value": "SWB06",
+                "label": "SWB06"
+              },
+              {
+                "value": "SWB07",
+                "label": "SWB07"
+              },
+              {
+                "value": "SWB08",
+                "label": "SWB08"
+              },
+              {
+                "value": "SWB09",
+                "label": "SWB09"
+              }
+            ]
+          },
+          {
+            "label": "Input",
+            "children": [
+              {
+                "value": "Input0",
+                "label": "Input0"
+              },
+              {
+                "value": "Input1",
+                "label": "Input1"
+              },
+              {
+                "value": "Input2",
+                "label": "Input2"
+              },
+              {
+                "value": "Input3",
+                "label": "Input3"
+              }
+            ]
+          }
+    ],
+    "outputOptions": [
+        {
+            "label": "LED",
+            "children": [
+              {
+                "value": "L00",
+                "label": "L00"
+              },
+              {
+                "value": "L01",
+                "label": "L01"
+              },
+              {
+                "value": "L02",
+                "label": "L02"
+              },
+              {
+                "value": "L03",
+                "label": "L03"
+              },
+              {
+                "value": "L04",
+                "label": "L04"
+              },
+              {
+                "value": "L05",
+                "label": "L05"
+              },
+              {
+                "value": "L06",
+                "label": "L06"
+              },
+              {
+                "value": "L07",
+                "label": "L07"
+              },
+              {
+                "value": "L08",
+                "label": "L08"
+              },
+              {
+                "value": "L09",
+                "label": "L09"
+              },
+              {
+                "value": "L10",
+                "label": "L10"
+              },
+              {
+                "value": "L11",
+                "label": "L11"
+              },
+              {
+                "value": "L12",
+                "label": "L12"
+              },
+              {
+                "value": "L13",
+                "label": "L13"
+              },
+              {
+                "value": "L14",
+                "label": "L14"
+              },
+              {
+                "value": "L15",
+                "label": "L15"
+              },
+              {
+                "value": "L16",
+                "label": "L16"
+              },
+              {
+                "value": "L17",
+                "label": "L17"
+              },
+              {
+                "value": "L18",
+                "label": "L18"
+              },
+              {
+                "value": "L19",
+                "label": "L19"
+              }
+            ]
+          },
+          {
+            "label": "Output",
+            "children":[
+              {
+                "value": "Output0",
+                "label": "Output0"
+              },
+              {
+                "value": "Output1",
+                "label": "Output1"
+              },
+              {
+                "value": "Output2",
+                "label": "Output2"
+              },
+              {
+                "value": "Output3",
+                "label": "Output3"
+              },
+              {
+                "value": "Output4",
+                "label": "Output4"
+              },
+              {
+                "value": "Output5",
+                "label": "Output5"
+              },
+              {
+                "value": "Output6",
+                "label": "Output6"
+              },
+              {
+                "value": "Output7",
+                "label": "Output7"
+              },
+              {
+                "value": "Output8",
+                "label": "Output8"
+              },
+              {
+                "value": "Output9",
+                "label": "Output9"
+              }
+            ]
+          }
+    ]
+}
