@@ -2,6 +2,7 @@
     "inputOptions": [
         {
             "label": "SW",
+            "value": "SW",
             "children": [
               {
                 "value": "SW00",
@@ -87,6 +88,7 @@
           },
           {
             "label": "SWB",
+            "value": "SWB",
             "children":[
               {
                 "value": "SWB00",
@@ -132,6 +134,7 @@
           },
           {
             "label": "Input",
+            "value": "Input",
             "children": [
               {
                 "value": "Input0",
@@ -155,6 +158,7 @@
     "outputOptions": [
         {
             "label": "LED",
+            "value": "LED",
             "children": [
               {
                 "value": "L00",
@@ -240,6 +244,7 @@
           },
           {
             "label": "Output",
+            "value": "Output",
             "children":[
               {
                 "value": "Output0",

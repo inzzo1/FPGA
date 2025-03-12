@@ -8,23 +8,23 @@ import { Plus, Minus } from '@element-plus/icons-vue';
 import {simulate} from '@/api/boardApi'
 
 interface Row {
-  input: string;
-  chains: string[];
+  signal: string;
+  pins: string[];
 }
 
-const uploadDisabled = ref(false);
+const uploadDisabled = ref(false);  
 
 const inputRows = ref<Row[]>([
   {
-    input: '',
-    chains: ['']
+    signal: '',
+    pins: ['']
   }
 ]);
 
 const outputRows = ref<Row[]>([
   {
-    input: '',
-    chains: ['']
+    signal: '',
+    pins: ['']
   }
 ]);
 
@@ -33,8 +33,8 @@ const outputOptions = options.outputOptions;
 
 const addInputRow = () => {
   inputRows.value.push({
-    input: '',
-    chains: ['']
+    signal: '',
+    pins: ['']
   });
 };
 
@@ -43,17 +43,20 @@ const removeInputRow = (rowIndex: number) => {
 };
 
 const addInputChain = (rowIndex: number) => {
-  inputRows.value[rowIndex].chains.push('');
+  // 只在添加的项不为 null 或空字符串时才添加
+  if (inputRows.value[rowIndex].pins[inputRows.value[rowIndex].pins.length - 1] !== '') {
+    inputRows.value[rowIndex].pins.push('');
+  }
 };
 
 const removeInputChain = (rowIndex: number) => {
-  inputRows.value[rowIndex].chains.pop();
+  inputRows.value[rowIndex].pins.pop();
 };
 
 const addOutputRow = () => {
   outputRows.value.push({
-    input: '',
-    chains: ['']
+    signal: '',
+    pins: ['']
   });
 };
 
@@ -62,14 +65,14 @@ const removeOutputRow = (rowIndex: number) => {
 };
 
 const addOutputChain = (rowIndex: number) => {
-  outputRows.value[rowIndex].chains.push('');
-  console.log('output', outputRows.value)
-  console.log('input', inputRows.value)
-  console.log('file', fileList.value)
+  // 只在添加的项不为 null 或空字符串时才添加
+  if (outputRows.value[rowIndex].pins[outputRows.value[rowIndex].pins.length - 1] !== '') {
+    outputRows.value[rowIndex].pins.push('');
+  }
 };
 
 const removeOutputChain = (rowIndex: number) => {
-  outputRows.value[rowIndex].chains.pop();
+  outputRows.value[rowIndex].pins.pop();
 };
 
 const fileList = ref<UploadUserFile[]>(
@@ -111,8 +114,14 @@ const isStart = ref(true)
 
 const startExp = () => {
   const bindData = {
-    inputRows: inputRows.value,
-    outputRows: outputRows.value
+    inputRows: inputRows.value.map(row => ({
+      signal: row.signal,
+      pins: row.pins.filter(pin => pin && pin !== '') // 只保留非 null 和非空字符串的值
+    })),
+    outputRows: outputRows.value.map(row => ({
+      signal: row.signal,
+      pins: row.pins.filter(pin => pin && pin !== '') // 只保留非 null 和非空字符串的值
+    }))
   };
   const formData = new FormData();
   const bindBlob = new Blob([JSON.stringify(bindData)], { type: 'application/json' });
@@ -129,6 +138,7 @@ const startExp = () => {
   }
 
   formData.append('bindFile', bindBlob, 'bind.json');
+  console.log(JSON.stringify(bindData));
   
   simulate(formData)
   isStart.value = !isStart.value
@@ -186,7 +196,7 @@ const endExp = () => {
                       <span>
                         Input:
                       </span>
-                      <el-input v-model="row.input" type="text" style="width: 50%"/>
+                      <el-input v-model="row.signal" type="text" style="width: 50%"/>
                     </div>
                     <!-- 点击加号新增一行 -->
                     <div>
@@ -205,16 +215,16 @@ const endExp = () => {
                     </div>
                     <div style="display: flex; flex-direction: column; width: 38%;">
                       <div
-                        v-for="(chain, chainIndex) in row.chains"
+                        v-for="(chain, chainIndex) in row.pins"
                         :key="chainIndex"
                         class="chain-item"
                       >
-                        <el-cascader v-model="row.chains[chainIndex]" :show-all-levels="false" clearable :options="inputOptions" style="width: 100%;" placeholder=" " />
+                        <el-cascader v-model="row.pins[chainIndex]" :show-all-levels="false" clearable :options="inputOptions" style="width: 100%;" placeholder=" " />
                       </div>
                     </div>
                     <!-- 点击加号在当前行新增一个链式选择器 -->
                     <el-button @click="addInputChain(rowIndex)" :icon="Plus" type="primary" style="width: 10%; height: 10%;"></el-button>
-                    <el-button @click="removeInputChain(rowIndex)" :icon="Minus" type="primary" :disabled="row.chains.length <= 1" style="width: 10%; height: 10%;"></el-button>
+                    <el-button @click="removeInputChain(rowIndex)" :icon="Minus" type="primary" :disabled="row.pins.length <= 1" style="width: 10%; height: 10%;"></el-button>
                   </div>
                 </div>
               </el-scrollbar>
@@ -237,7 +247,7 @@ const endExp = () => {
                       <span>
                         Output:
                       </span>
-                      <el-input v-model="row.input" type="text" style="width: 40%"/>
+                      <el-input v-model="row.signal" type="text" style="width: 40%"/>
                     </div>
                     <!-- 点击加号新增一行 -->
                     <div>
@@ -256,16 +266,16 @@ const endExp = () => {
                     </div>
                     <div style="display: flex; flex-direction: column; width: 38%;">
                       <div
-                        v-for="(chain, chainIndex) in row.chains"
+                        v-for="(chain, chainIndex) in row.pins"
                         :key="chainIndex"
                         class="chain-item"
                       >
-                        <el-cascader v-model="row.chains[chainIndex]" :show-all-levels="false" :options="outputOptions" style="width: 100%;" placeholder=" " />
+                        <el-cascader v-model="row.pins[chainIndex]" :show-all-levels="false" :options="outputOptions" style="width: 100%;" placeholder=" " />
                       </div>
                     </div>
                     <!-- 点击加号在当前行新增一个链式选择器 -->
                     <el-button @click="addOutputChain(rowIndex)" :icon="Plus" type="primary" style="width: 10%; height: 10%;"></el-button>
-                    <el-button @click="removeOutputChain(rowIndex)" :icon="Minus" type="primary" :disabled="row.chains.length <= 1" style="width: 10%; height: 10%;"></el-button>
+                    <el-button @click="removeOutputChain(rowIndex)" :icon="Minus" type="primary" :disabled="row.pins.length <= 1" style="width: 10%; height: 10%;"></el-button>
                   </div>
                 </div>
               </el-scrollbar>
