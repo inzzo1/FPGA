@@ -7,6 +7,24 @@ import { ref } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {simulate} from '@/api/boardApi'
 
+let sessionId;
+
+const socket = new WebSocket('ws://your-websocket-server-url');
+
+socket.onopen = () => {
+  // WebSocket 连接成功后获取 sessionId
+  // 假设 sessionId 是 WebSocket 服务端发来的消息
+  socket.send('getSessionId');  // 请求 sessionId
+};
+
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  if (message.type === 'sessionId') {
+    sessionId = message.sessionId;  // 假设服务器返回的是这样的结构
+    console.log('Session ID:', sessionId);
+  }
+};
+
 interface Row {
   signal: string;
   pins: string[];
@@ -134,6 +152,16 @@ const startExp = () => {
       type: 'error'
     });
 
+    return;
+  }
+
+  if (sessionId) {
+    formData.append('sessionId', sessionId);
+  } else {
+    ElMessageBox.alert('未获取到 sessionId', '错误', {
+      confirmButtonText: '确定',
+      type: 'error'
+    });
     return;
   }
 
@@ -292,7 +320,7 @@ const endExp = () => {
 
 <style lang="scss" scoped>
 .backGround{
-  background-image: url('../assets/bg-dyn-light.png');
+  background-image: url('../../src/assets/bj.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -313,6 +341,9 @@ const endExp = () => {
     .VirDeskPart{
       width: 72%;
       height: 100%;
+      background-image: url('@/assets/virtualDeskBg.png');
+      background-size: cover;
+      background-position: center center;
     }
     .bindingPart{
       width: 28%;

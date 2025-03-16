@@ -52,7 +52,10 @@ const setTrue = true
 
 <style lang="scss" scoped>
 %bg {
-  background-image: url('../../src/assets/bg-dyn-light.png');
+  background-image: url('../../src/assets/bj.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 :deep() {
   --el-color-primary: #924141 !important;
