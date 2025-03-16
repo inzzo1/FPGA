@@ -5,17 +5,11 @@ import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
-import {simulate} from '@/api/boardApi'
+import {simulate, stop} from '@/api/boardApi'
 
 let sessionId;
 
 const socket = new WebSocket('ws://your-websocket-server-url');
-
-socket.onopen = () => {
-  // WebSocket 连接成功后获取 sessionId
-  // 假设 sessionId 是 WebSocket 服务端发来的消息
-  socket.send('getSessionId');  // 请求 sessionId
-};
 
 socket.onmessage = (event) => {
   const message = JSON.parse(event.data);
@@ -169,11 +163,36 @@ const startExp = () => {
   console.log(JSON.stringify(bindData));
   
   simulate(formData)
-  isStart.value = !isStart.value
+    .then((response) => {
+      console.log('模拟成功:', response);
+      
+      // 弹出模拟成功的提示框
+      ElMessageBox.alert('模拟成功！', '提示', {
+        confirmButtonText: '确定',
+        type: 'success'
+      }).then(() => {
+        // 成功后执行的操作（如果有）
+        isStart.value = !isStart.value;
+      });
+    })
+    .catch((error) => {
+      console.error('模拟失败:', error);
+      ElMessageBox.alert('模拟请求失败，请检查网络或服务器状态', '错误', {
+        confirmButtonText: '确定',
+        type: 'error'
+      });
+    });
 }
 
 const endExp = () => {
   isStart.value = !isStart.value
+  stop(sessionId)
+    .then(() => {
+      isStart.value = !isStart.value;
+    })
+    .catch((error) => {
+      console.error('停止实验出错：', error);
+    });
 }
 
 
@@ -186,7 +205,8 @@ const endExp = () => {
     </div>
     <div class="bdPart">
       <div class="VirDeskPart">
-        <VitualDesk> </VitualDesk>
+        <img src="@/assets/virtualDeskBg.png" alt="BackGround">
+        <!-- <VitualDesk> </VitualDesk> -->
       </div>
       <div class="bindingPart">
         <div class="bindBox">
@@ -339,14 +359,15 @@ const endExp = () => {
     display: flex;
     flex-wrap: nowrap;
     .VirDeskPart{
-      width: 72%;
+      width: 66%;
       height: 100%;
-      background-image: url('@/assets/virtualDeskBg.png');
-      background-size: cover;
-      background-position: center center;
+      >img{
+        width: 100%;
+        height: 100%;
+      }
     }
     .bindingPart{
-      width: 28%;
+      width: 34%;
       height: 100%;
       display: flex;
       flex-direction: row-reverse;

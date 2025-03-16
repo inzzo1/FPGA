@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { VBselecting } from '@/components/board-selecting/VBselecting.vue'
+import VBselecting from '@/components/board-selecting/VBselecting.vue'
 
 // 用来存储板子选择
 const boardselecting = ref('')

@@ -108,6 +108,6 @@ export const simulate = (formData) => {
     return request.post('/fpga/simulate',formData)
 }
 
-export const stop = () => {
-    return request.post('/fpga/stop')
+export const stop = (sessionId) => {
+    return request.post(`/fpga/stop?sessionId=${sessionId}`)
 }
