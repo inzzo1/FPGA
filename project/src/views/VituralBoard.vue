@@ -185,7 +185,6 @@ const startExp = () => {
 }
 
 const endExp = () => {
-  isStart.value = !isStart.value
   stop(sessionId)
     .then(() => {
       isStart.value = !isStart.value;
@@ -200,13 +199,12 @@ const endExp = () => {
 
 <template>
   <div style="width: 100%; height: 100%" class="backGround">
-    <div class="header">
-      <stateHeader></stateHeader>
-    </div>
     <div class="bdPart">
       <div class="VirDeskPart">
         <img src="@/assets/virtualDeskBg.png" alt="BackGround">
-        <!-- <VitualDesk> </VitualDesk> -->
+        <div class="virDeskOutline">
+          <VitualDesk></VitualDesk>
+        </div>
       </div>
       <div class="bindingPart">
         <div class="bindBox">
@@ -332,9 +330,9 @@ const endExp = () => {
         </div>
       </div>
     </div>
-    <span>
+    <!-- <span>
       FPGA 远程实验平台
-    </span>
+    </span> -->
   </div>
 </template>
 
@@ -344,39 +342,50 @@ const endExp = () => {
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
   position: relative;
   overflow: hidden;
-  .header{
-    width: 46%;
-    height: 15%;
-    margin-top: 1%;
-    margin-left: 4%;
-  }
   .bdPart{
-    width: 92%;
-    height: 80%;
+    width: 96%;
+    height: 85%;
+    background-color: white;
+    border-radius: 30px;
     margin: 0 auto;
     display: flex;
     flex-wrap: nowrap;
+    justify-content: space-around;
+    align-items: center;
+    border: 2px dashed #9E3419;
     .VirDeskPart{
-      width: 66%;
-      height: 100%;
+      width: 69%;
+      height: 95%;
+      position: relative;
+      .virDeskOutline{
+        width: 96%;
+        height: 94%;
+        position: absolute;
+        left: 2%;
+        top: 3%;
+      }
       >img{
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
       }
     }
     .bindingPart{
-      width: 34%;
-      height: 100%;
+      width: 30%;
+      height: 95%;
       display: flex;
       flex-direction: row-reverse;
       .bindBox{
-        width: 90%;
+        width: 100%;
         height: 100%;
         border-radius: 30px;
         background-color: rgba(246, 246, 246, 1);
-        box-shadow: 8px 8px 10px rgba(0, 0, 0, 0.3);
         .bindHeader{
           width: 90%;
           height: 7%;
