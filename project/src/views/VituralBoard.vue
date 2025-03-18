@@ -209,26 +209,16 @@ const endExp = () => {
       <div class="bindingPart">
         <div class="bindBox">
           <div class="bindHeader">
-            <el-upload
-            :file-list="fileList"
-            multiple
-            :before-upload="beforeUpload"
-            :disabled="uploadDisabled"
-            class="UploadBt"
-            >
-              <el-button type="warning" style="width: 100%;height: 100%;" :disabled="uploadDisabled">上传.V</el-button>
-            </el-upload>
-            <el-button type="danger" style="width: 35%;height: 100%;" v-if="isStart" @click="startExp">
-              开始实验
-            </el-button>
-            <el-button type="danger" style="width: 35%;height: 100%;" v-if="!isStart" @click="endExp">
-              结束实验
-            </el-button>
+            <span>
+              FPGA 远程实验平台
+            </span>
           </div>
           <div class="bind">
-            <span class="putTitle">
-              选择绑定Input信号
-            </span>
+            <div class="putTitle">
+              <span>
+                选择绑定Input信号
+              </span>
+            </div>
             <div class="putScroll">
               <el-scrollbar height="100%">
                 <div
@@ -245,9 +235,9 @@ const endExp = () => {
                       <el-input v-model="row.signal" type="text" style="width: 50%"/>
                     </div>
                     <!-- 点击加号新增一行 -->
-                    <div>
-                      <el-button @click="addInputRow" :icon="Plus" style="width: 10%; height: 10%;"></el-button>
-                      <el-button @click="removeInputRow(rowIndex)" :icon="Minus" :disabled="inputRows.length <= 1" style="width: 10%; height: 20%;"></el-button>
+                    <div style="width: 100%; height: 26px;">
+                      <el-button @click="addInputRow" :icon="Plus" class="rowPlus"></el-button>
+                      <el-button @click="removeInputRow(rowIndex)" :icon="Minus" :disabled="inputRows.length <= 1" class="rowMinus"></el-button>
                     </div>
                   </div>
                   
@@ -255,7 +245,7 @@ const endExp = () => {
                   <div class="chain-part">
                     <!-- 遍历该行的所有链式选择器 -->
                     <div>
-                      <span style="font-size: 15px;">
+                      <span style="font-size: 16px;">
                         引脚：
                       </span>
                     </div>
@@ -268,9 +258,9 @@ const endExp = () => {
                         <el-cascader v-model="row.pins[chainIndex]" :show-all-levels="false" clearable :options="inputOptions" style="width: 100%;" placeholder=" " />
                       </div>
                     </div>
-                    <!-- 点击加号在当前行新增一个链式选择器 -->
-                    <el-button @click="addInputChain(rowIndex)" :icon="Plus" type="primary" style="width: 10%; height: 10%;"></el-button>
-                    <el-button @click="removeInputChain(rowIndex)" :icon="Minus" type="primary" :disabled="row.pins.length <= 1" style="width: 10%; height: 10%;"></el-button>
+                    <!-- 点击加号在当前行新增一个链式选择器 --> 
+                    <el-button @click="addInputChain(rowIndex)" :icon="Plus" class="chainPlus"></el-button>
+                    <el-button @click="removeInputChain(rowIndex)" :icon="Minus" :disabled="row.pins.length <= 1" class="chainMinus"></el-button>
                   </div>
                 </div>
               </el-scrollbar>
@@ -278,7 +268,9 @@ const endExp = () => {
           </div>
           <div class="bind">
             <span class="putTitle">
-              选择绑定Output信号
+              <span>
+                选择绑定Output信号
+              </span>
             </span>
             <div class="putScroll">
               <el-scrollbar height="100%">
@@ -288,17 +280,17 @@ const endExp = () => {
                   class="row"
                 >
                   <!-- 左侧：input 和对应的加号 -->
-                  <div class="put-part" style="width: 35%;">
-                    <div>
-                      <span>
+                  <div class="put-part" style="width: 40%;height: 66px;">
+                    <div style="width: 100%; height: 36px;">
+                      <span style="font-size: 16px;">
                         Output:
                       </span>
-                      <el-input v-model="row.signal" type="text" style="width: 40%"/>
+                      <el-input v-model="row.signal" type="text" style="width: 48%"/>
                     </div>
                     <!-- 点击加号新增一行 -->
-                    <div>
-                      <el-button @click="addOutputRow" :icon="Plus" type="primary" style="width: 10%; height: 10%;"></el-button>
-                      <el-button @click="removeOutputRow(rowIndex)" :icon="Minus" type="primary" :disabled="outputRows.length <= 1" style="width: 10%; height: 20%;"></el-button>
+                    <div style="width: 100%; height: 26px;">
+                      <el-button @click="addOutputRow" :icon="Plus" class="rowPlus"></el-button>
+                      <el-button @click="removeOutputRow(rowIndex)" :icon="Minus" :disabled="outputRows.length <= 1" class="rowMinus"></el-button>
                     </div>
                   </div>
                   
@@ -306,7 +298,7 @@ const endExp = () => {
                   <div class="chain-part">
                     <!-- 遍历该行的所有链式选择器 -->
                     <div>
-                      <span style="font-size: 15px;">
+                      <span style="font-size: 16px;">
                         引脚：
                       </span>
                     </div>
@@ -316,23 +308,38 @@ const endExp = () => {
                         :key="chainIndex"
                         class="chain-item"
                       >
-                        <el-cascader v-model="row.pins[chainIndex]" :show-all-levels="false" :options="outputOptions" style="width: 100%;" placeholder=" " />
+                        <el-cascader v-model="row.pins[chainIndex]" :show-all-levels="false" clearable :options="outputOptions" style="width: 100%;" placeholder=" " />
                       </div>
                     </div>
                     <!-- 点击加号在当前行新增一个链式选择器 -->
-                    <el-button @click="addOutputChain(rowIndex)" :icon="Plus" type="primary" style="width: 10%; height: 10%;"></el-button>
-                    <el-button @click="removeOutputChain(rowIndex)" :icon="Minus" type="primary" :disabled="row.pins.length <= 1" style="width: 10%; height: 10%;"></el-button>
+                    <el-button @click="addOutputChain(rowIndex)" :icon="Plus" class="chainPlus"></el-button>
+                    <el-button @click="removeOutputChain(rowIndex)" :icon="Minus" :disabled="row.pins.length <= 1" class="chainMinus"></el-button>
                   </div>
                 </div>
               </el-scrollbar>
             </div>
           </div>
+          <div class="bindFoot">
+            <el-upload
+            :file-list="fileList"
+            multiple
+            :before-upload="beforeUpload"
+            :disabled="uploadDisabled"
+            class="UploadBt"
+            >
+              <el-button style="width: 100%;height: 100%;" :disabled="uploadDisabled">上传.V</el-button>
+            </el-upload>
+            <el-button class="expBt" v-if="isStart" @click="startExp">
+              开始实验
+            </el-button>
+            <el-button class="expBt" v-if="!isStart" @click="endExp">
+              结束实验
+            </el-button>
+          </div>
         </div>
       </div>
     </div>
-    <!-- <span>
-      FPGA 远程实验平台
-    </span> -->
+    
   </div>
 </template>
 
@@ -354,7 +361,7 @@ const endExp = () => {
     margin: 0 auto;
     display: flex;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
     border: 2px dashed #9E3419;
     .VirDeskPart{
@@ -377,7 +384,7 @@ const endExp = () => {
       }
     }
     .bindingPart{
-      width: 30%;
+      width: 26%;
       height: 95%;
       display: flex;
       flex-direction: row-reverse;
@@ -385,32 +392,35 @@ const endExp = () => {
         width: 100%;
         height: 100%;
         border-radius: 30px;
-        background-color: rgba(246, 246, 246, 1);
         .bindHeader{
           width: 90%;
-          height: 7%;
+          height: 10%;
           margin: 0 auto;
           margin-top: 6%;
-          display: flex;
-          justify-content: space-around;
-          .UploadBt{
-            width: 35%;
-            height: 100%;
+          > span{
+            font-size: 30px;
+            font-weight: 600;
           }
         }
         .bind{
           width: 100%;
-          height: 40%;
+          height: 34%;
           position: relative;
           overflow: hidden;
           display: flex;
           flex-direction: column;
-          justify-content: flex-end;
+          justify-content: space-around;
           .putTitle{
-            position: absolute;
-            top: 5%;
-            left: 5%;
-            font-size: 18px;
+            width: 100%;
+            height: 15%;
+            background-color: #FFC48A;
+            position: relative;
+            > span{
+              position: absolute;
+              left: 5%;
+              top: 10%;
+              font-size: 18px;
+            }
           }
           .putScroll{
             width: 90%;
@@ -424,22 +434,46 @@ const endExp = () => {
               .put-part {
                 display: flex;
                 flex-direction: column;
-                width: 30%;
+                width: 40%;
+                .rowPlus{
+                  width: 20%; 
+                  height: 100%; 
+                  background-color: #ECAF72;
+                  color: white;
+                }
+                .rowMinus{
+                  width: 20%; 
+                  height: 100%; 
+                  background-color: #ECAF72;
+                  color: white;
+                  margin-left: 5%;
+                }
                 span{
-                  font-size: 15px;
+                  font-size: 18px;
                 }
                 button{
                   margin: 1px;
-                }
-                .el-button{
-                  background-color: rgb(185, 178, 178);
-                  color: white;
                 }
               }
               .chain-part {
                 display: flex;
                 align-items: flex-start;
-                width: 70%;
+                width: 60%;
+                height: 40px;
+                .chainPlus{
+                  width: 12%; 
+                  height: 64%; 
+                  margin-left: 5%; 
+                  background-color: #FC654E; 
+                  color: white;
+                }
+                .chainMinus{
+                  width: 12%; 
+                  height: 64%; 
+                  margin-left: 3%; 
+                  background-color: #D4DBA1; 
+                  color: white;
+                }
                 .chain-item{
                   width: 100%;
                 }
@@ -448,6 +482,26 @@ const endExp = () => {
                 }
               }
             }
+          }
+        }
+        .bindFoot{
+          width: 100%;
+          height: 15%;
+          display: flex;
+          justify-content: space-around;
+          .UploadBt{
+            width: 35%;
+            height: 40%;
+            .el-button{
+              color: white;
+              background: linear-gradient(45deg, rgb(228, 131, 34), rgb(226, 182, 93));
+            }
+          }
+          .expBt{
+            width: 35%;
+            height: 40%;
+            color: white;
+            background: linear-gradient(45deg, rgb(252, 101, 78), rgb(252, 123, 67));
           }
         }
       }
@@ -467,6 +521,10 @@ const endExp = () => {
 ::v-deep .el-upload {
   width: 100%;
   height: 100%;
+}
+
+::v-deep .el-button {
+  padding: 0;
 }
 
 </style>
