@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import VitualDesk from '@/components/virtualDesk/index.vue';
-import stateHeader from '@/components/header/stateHeader.vue';
 import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref } from 'vue';
