@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import SwitchOff from '@/assets/Switch/switchOff.vue';
     import SwitchOn from '@/assets/Switch/switchOn.vue';
-    import { ref } from 'vue';
+    import { ref, defineEmits } from 'vue';
 
     interface SwitchItem {
         number: number;  // 拨码开关的编号
@@ -31,31 +31,35 @@
         { number: 0,  state: false }
     ]);
 
+    const emit = defineEmits(['updateSwitchState']);
+
+    // 点击切换拨码开关状态
     const toggleSwitch = (index: number) => {
         switcheData.value[index].state = !switcheData.value[index].state;
+        emit('updateSwitchState', switcheData.value);
     };
 
 </script>
 
 <template>
     <div class="SwitchOutBg">
-            <div class="lineFrame">
-                <div class="wrap">
-                    <div class="switchFrame" v-for="(item, index) in switcheData" :key="index">
-                        <component
-                            :is="item.state ? SwitchOn : SwitchOff"
-                            style="width: 140%; height: auto; margin-top: 40%; transform: rotate(270deg);"
-                            @click="toggleSwitch(index)"
-                        />
-                        <span>SW{{ String(item.number).padStart(2, '0') }}</span>
-                    </div>
-                </div>
-            </div>
-            <span>
-                拨码开关
-            </span>
+      <div class="lineFrame">
+        <div class="wrap">
+          <div class="switchFrame" v-for="(item, index) in switcheData" :key="index">
+            <component
+              :is="item.state ? SwitchOn : SwitchOff"
+              style="width: 140%; height: auto; margin-top: 40%; transform: rotate(270deg);"
+              @click="toggleSwitch(index)"
+            />
+            <span>SW{{ String(item.number).padStart(2, '0') }}</span>
+          </div>
         </div>
-</template>
+      </div>
+      <span>
+        拨码开关
+      </span>
+    </div>
+  </template>
 
 <style lang="scss" scoped>
     .SwitchOutBg{

@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import ButtonOn from '@/assets/Button/buttonOn.vue';
     import ButtonOff from '@/assets/Button/buttonOff.vue';
-    import { ref } from 'vue';
+    import { ref, defineEmits } from 'vue';
 
     interface ButtonItem {
         number: number;  // 原先你的按钮编号
@@ -20,10 +20,13 @@
         { number: 1, state: false },
         { number: 0, state: false },
     ]);
+
+    const emit = defineEmits(['updateButtonState'])
     
     //点击切换按钮状态
     const toggleButton = (index: number) => {
         buttonData.value[index].state = !buttonData.value[index].state;
+        emit('updateButtonState', buttonData.value)
     };
 </script>
 

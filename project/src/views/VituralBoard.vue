@@ -2,21 +2,79 @@
 import VitualDesk from '@/components/virtualDesk/index.vue';
 import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {simulate, stop} from '@/api/boardApi'
 
-let sessionId;
+let sessionId: string | undefined = undefined;
 
 const socket = new WebSocket('ws://your-websocket-server-url');
+
+
+// 在这里定义从后端/子组件获取的状态
+const ledData = ref<number[]>([]);      // 用于渲染LED状态
+const buttonState = ref<any[]>([]);     // 用于记录按钮状态
+const switchState = ref<any[]>([]);     // 用于记录拨码开关状态
 
 socket.onmessage = (event) => {
   const message = JSON.parse(event.data);
   if (message.type === 'sessionId') {
     sessionId = message.sessionId;  // 假设服务器返回的是这样的结构
     console.log('Session ID:', sessionId);
+  }else if (message.type === 'signal') {
+    // 这里的所有信号都在 message.data 下
+    const allSignals = message.data; 
+    // allSignals示例： { SW01:0, SW00:0, SWB00:0, SWB01:1, L02:1, L01:0 }
+
+    // ① 解析LED，收集所有以 'L' 开头的键
+    const ledEntries = Object.entries(allSignals).filter(([key]) => key.startsWith('L'));
+    // ledEntries 形如： [ ['L02', 1], ['L01', 0], ... ]
+
+    // ② 根据数字序号（“02”→2，“01”→1 等）排序
+    const sortedLedEntries = ledEntries.sort((a, b) => {
+      const aIndex = parseInt(a[0].slice(1)); // 去掉 'L' 后转数字
+      const bIndex = parseInt(b[0].slice(1));
+      return aIndex - bIndex;
+    });
+
+    // ③ 构建新的数组，index 对应 L后面的数字，值是 0/1
+    const newLedData: number[] = [];
+    for (const [key, val] of sortedLedEntries) {
+      const ledIndex = parseInt(key.slice(1));
+      newLedData[ledIndex] = val as number; // 例如 0 或 1
+    }
+
+    // ④ 更新到你的 ledData
+    ledData.value = newLedData;
+    console.log('LED data:', ledData.value);
   }
 };
+
+// 当从子组件接收到按钮状态变化时，发送给后端
+function handleButtonState(newButtonState: any[]) {
+  buttonState.value = newButtonState;
+  if (sessionId) {
+    socket.send(JSON.stringify({
+      type: 'updateState',
+      sessionId,
+      buttonState: buttonState.value,
+      switchState: switchState.value
+    }));
+  }
+}
+
+// 当从子组件接收到拨码开关状态变化时，发送给后端
+function handleSwitchState(newSwitchState: any[]) {
+  switchState.value = newSwitchState;
+  if (sessionId) {
+    socket.send(JSON.stringify({
+      type: 'updateState',
+      sessionId,
+      buttonState: buttonState.value,
+      switchState: switchState.value
+    }));
+  }
+}
 
 interface Row {
   signal: string;
@@ -202,7 +260,11 @@ const endExp = () => {
       <div class="VirDeskPart">
         <img src="@/assets/virtualDeskBg.png" alt="BackGround">
         <div class="virDeskOutline">
-          <VitualDesk></VitualDesk>
+          <VitualDesk
+            :ledData="ledData"
+            @sendButtonState="handleButtonState"
+            @sendSwitchState="handleSwitchState"
+          />
         </div>
       </div>
       <div class="bindingPart">

@@ -1,26 +1,44 @@
 <script setup lang="ts">
-    import LightOff from '@/assets/LED/lightOff.vue';
-    import LightOn from '@/assets/LED/lightOn.vue';
-import { ref } from 'vue';
-    const ledNumber = ref([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19])
+import LightOff from '@/assets/LED/lightOff.vue';
+import LightOn from '@/assets/LED/lightOn.vue';
+import { defineProps, computed } from 'vue';
+
+const props = defineProps({
+  ledData: {
+    type: Array,
+    default: () => [],
+  }
+});
+
+// 当父组件传来的 ledData 为空时，用一个默认的 20 个 0 替代
+const computedLedData = computed(() => {
+  return props.ledData.length > 0 ? props.ledData : new Array(20).fill(0);
+});
 </script>
 
 <template>
-    <div class="LEDOutBg">
-        <div class="lineFrame">
-            <div class="wrap">
-                <div class="smallLed" v-for="(item, index) in ledNumber" :key='index'>
-                    <LightOff style="width: 90%;height: auto; transform: rotate(90deg);"></LightOff>
-                    <span>
-                        L{{ String(item).padStart(2, '0') }}
-                    </span>
-                </div>
-            </div>
+  <div class="LEDOutBg">
+    <div class="lineFrame">
+      <div class="wrap">
+        <div
+          class="smallLed"
+          v-for="(bit, index) in computedLedData"
+          :key="index"
+        >
+          <component
+            :is="bit ? LightOn : LightOff"
+            style="width: 90%; height: auto; transform: rotate(90deg);"
+          ></component>
+          <span>
+            L{{ String(index).padStart(2, '0') }}
+          </span>
         </div>
-        <span>
-            LED灯
-        </span>
+      </div>
     </div>
+    <span>
+        LED灯
+    </span>
+  </div>
 </template>
 
 <style lang="scss" scoped>
