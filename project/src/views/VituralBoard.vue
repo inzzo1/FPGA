@@ -53,6 +53,7 @@ socket.onmessage = (event) => {
 // 当从子组件接收到按钮状态变化时，发送给后端
 function handleButtonState(newButtonState: any[]) {
   buttonState.value = newButtonState;
+  console.log(buttonState.value)
   if (sessionId) {
     socket.send(JSON.stringify({
       type: 'updateState',
@@ -82,6 +83,8 @@ interface Row {
 }
 
 const uploadDisabled = ref(false);  
+
+const clk = ref('')
 
 const inputRows = ref<Row[]>([
   {
@@ -183,6 +186,7 @@ const isStart = ref(true)
 
 const startExp = () => {
   const bindData = {
+    clk: clk.value,
     inputRows: inputRows.value.map(row => ({
       signal: row.signal,
       pins: row.pins.filter(pin => pin && pin !== '') // 只保留非 null 和非空字符串的值
@@ -273,6 +277,19 @@ const endExp = () => {
             <span>
               FPGA 远程实验平台
             </span>
+          </div>
+          <div class="bindClk">
+            <div class="wrap">
+              <span>
+                CLK:
+              </span>
+              <el-input
+              v-model="clk" 
+              class="clkInput"
+              >
+
+              </el-input>
+            </div>
           </div>
           <div class="bind">
             <div class="putTitle">
@@ -463,6 +480,28 @@ const endExp = () => {
             font-weight: 600;
           }
         }
+        .bindClk{
+          width: 100%;
+          height: 6%;
+          margin-bottom: 4%;
+          background-color: #FFC48A;
+          .wrap{
+            width: 90%;
+            height: 100%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            > span{
+              margin-right: 2%;
+              font-size: 18px;
+              font-weight: 500;
+            }
+            > .el-input{
+              width: 40%;
+              height: 70%;
+            }
+          }
+        }
         .bind{
           width: 100%;
           height: 34%;
@@ -474,7 +513,7 @@ const endExp = () => {
           .putTitle{
             width: 100%;
             height: 15%;
-            background-color: #FFC48A;
+            background-color: rgba(236, 175, 114, 0.59);
             position: relative;
             > span{
               position: absolute;
@@ -586,6 +625,12 @@ const endExp = () => {
 
 ::v-deep .el-button {
   padding: 0;
+}
+
+
+::v-deep .clkInput .el-input__wrapper{
+  background-color: #FDE6D5 !important;
+  color: white !important;
 }
 
 </style>
