@@ -26,7 +26,17 @@
     //点击切换按钮状态
     const toggleButton = (index: number) => {
         buttonData.value[index].state = !buttonData.value[index].state;
-        emit('updateButtonState', buttonData.value)
+
+        const buttonObj: Record<string, number> = {};
+        // 遍历 switcheData.value
+        for (const item of buttonData.value) {
+          // 比如 item.number=0 => key='SW00'
+          // 如果 state=false => switchObj['SW00'] = 0
+          const key = 'SW' + String(item.number).padStart(2, '0');
+          buttonObj[key] = item.state ? 1 : 0;
+        }
+
+        emit('updateButtonState', buttonObj)
     };
 </script>
 

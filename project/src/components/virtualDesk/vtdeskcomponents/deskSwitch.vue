@@ -9,6 +9,7 @@
     }
     
     const switcheData = ref<SwitchItem[]>([
+      
         { number: 19, state: false },
         { number: 18, state: false },
         { number: 17, state: false },
@@ -36,7 +37,21 @@
     // 点击切换拨码开关状态
     const toggleSwitch = (index: number) => {
         switcheData.value[index].state = !switcheData.value[index].state;
-        emit('updateSwitchState', switcheData.value);
+
+        // 2) 把 switcheData.value 转成一个对象，形如：
+        //    { SW00:0, SW01:1, ... }
+        const switchObj: Record<string, number> = {};
+        // 遍历 switcheData.value
+        for (const item of switcheData.value) {
+          // 比如 item.number=0 => key='SW00'
+          // 如果 state=false => switchObj['SW00'] = 0
+          const key = 'SW' + String(item.number).padStart(2, '0');
+          switchObj[key] = item.state ? 1 : 0;
+        }
+
+        // 3) 把这个对象通过事件发给父组件
+        emit('updateSwitchState', switchObj);
+
     };
 
 </script>

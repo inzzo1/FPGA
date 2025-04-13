@@ -56,7 +56,7 @@ function handleButtonState(newButtonState: any[]) {
   console.log(buttonState.value)
   if (sessionId) {
     socket.send(JSON.stringify({
-      type: 'updateState',
+      type: 'signal',
       sessionId,
       buttonState: buttonState.value,
       switchState: switchState.value
@@ -67,9 +67,10 @@ function handleButtonState(newButtonState: any[]) {
 // 当从子组件接收到拨码开关状态变化时，发送给后端
 function handleSwitchState(newSwitchState: any[]) {
   switchState.value = newSwitchState;
+  console.log(switchState.value)
   if (sessionId) {
     socket.send(JSON.stringify({
-      type: 'updateState',
+      type: 'signal',
       sessionId,
       buttonState: buttonState.value,
       switchState: switchState.value
