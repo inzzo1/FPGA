@@ -53,13 +53,15 @@ socket.onmessage = (event) => {
 // 当从子组件接收到按钮状态变化时，发送给后端
 function handleButtonState(newButtonState: any[]) {
   buttonState.value = newButtonState;
-  console.log(buttonState.value)
+  const mergedData = {
+    ...buttonState.value,
+    ...switchState.value
+  }
   if (sessionId) {
     socket.send(JSON.stringify({
       type: 'signal',
       sessionId,
-      buttonState: buttonState.value,
-      switchState: switchState.value
+      data:mergedData
     }));
   }
 }
@@ -67,13 +69,15 @@ function handleButtonState(newButtonState: any[]) {
 // 当从子组件接收到拨码开关状态变化时，发送给后端
 function handleSwitchState(newSwitchState: any[]) {
   switchState.value = newSwitchState;
-  console.log(switchState.value)
+  const mergedData = {
+    ...buttonState.value,
+    ...switchState.value
+  }
   if (sessionId) {
     socket.send(JSON.stringify({
       type: 'signal',
       sessionId,
-      buttonState: buttonState.value,
-      switchState: switchState.value
+      data:mergedData
     }));
   }
 }

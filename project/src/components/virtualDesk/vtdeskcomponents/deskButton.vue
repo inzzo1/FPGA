@@ -1,43 +1,33 @@
 <script setup lang="ts">
     import ButtonOn from '@/assets/Button/buttonOn.vue';
     import ButtonOff from '@/assets/Button/buttonOff.vue';
-    import { ref, defineEmits } from 'vue';
+    import { ref, defineEmits, onMounted } from 'vue';
+    import options from '@/stores/options.json'
 
-    interface ButtonItem {
-        number: number;  // 原先你的按钮编号
-        state: boolean;  // 记录该按钮的开关状态
-    }
 
-    const buttonData = ref<ButtonItem[]>([
-        { number: 9, state: false },
-        { number: 8, state: false },
-        { number: 7, state: false },
-        { number: 6, state: false },
-        { number: 5, state: false },
-        { number: 4, state: false },
-        { number: 3, state: false },
-        { number: 2, state: false },
-        { number: 1, state: false },
-        { number: 0, state: false },
-    ]);
+    const buttonData = ref(options.buttonData);
 
     const emit = defineEmits(['updateButtonState'])
+    // 提取公共函数，用于生成 button 状态对象
+    function generateButtonState(): Record<string, number> {
+        const buttonObj: Record<string, number> = {};
+        for (const item of buttonData.value) {
+            const key = 'SWB' + String(item.number).padStart(2, '0');
+            buttonObj[key] = item.state ? 1 : 0;
+        }
+        return buttonObj;
+    }
     
     //点击切换按钮状态
     const toggleButton = (index: number) => {
         buttonData.value[index].state = !buttonData.value[index].state;
 
-        const buttonObj: Record<string, number> = {};
-        // 遍历 switcheData.value
-        for (const item of buttonData.value) {
-          // 比如 item.number=0 => key='SW00'
-          // 如果 state=false => switchObj['SW00'] = 0
-          const key = 'SW' + String(item.number).padStart(2, '0');
-          buttonObj[key] = item.state ? 1 : 0;
-        }
-
-        emit('updateButtonState', buttonObj)
+        emit('updateButtonState', generateButtonState());
     };
+
+    onMounted(() => {
+        emit('updateButtonState', generateButtonState());
+    });
 </script>
 
 <template>
