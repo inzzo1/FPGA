@@ -27,7 +27,7 @@ const computedLedData = computed(() => {
         >
           <component
             :is="bit ? LightOn : LightOff"
-            style="width: 90%; height: auto; transform: rotate(90deg);"
+            style="width: 90%; height: auto; transform: rotate(90deg);transform-origin: center;"
           ></component>
           <span>
             L{{ String(index).padStart(2, '0') }}

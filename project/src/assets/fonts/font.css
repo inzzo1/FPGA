@@ -1,0 +1,12 @@
+/* src/assets/fonts/font.css */
+@font-face {
+    font-family: 'SourceHanSerifSC';
+    font-style: normal;
+    font-weight: 500;            /* 这里用 Medium 对应的 500，或改成 400/700 */
+    font-display: swap;
+  
+    /* 优先加载 woff2，再回退到 otf */
+    src:
+      url('./SourceHanSerifSC-Medium.woff2') format('woff2'),
+      url('./SourceHanSerifSC-Medium.otf')   format('opentype');
+  }

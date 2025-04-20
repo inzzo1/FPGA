@@ -332,7 +332,7 @@ const endExp = () => {
                         引脚：
                       </span>
                     </div>
-                    <div style="display: flex; flex-direction: column; width: 38%;">
+                    <div style="display: flex; flex-direction: column; width: 46%;">
                       <div
                         v-for="(chain, chainIndex) in row.pins"
                         :key="chainIndex"
@@ -385,7 +385,7 @@ const endExp = () => {
                         引脚：
                       </span>
                     </div>
-                    <div style="display: flex; flex-direction: column; width: 38%;">
+                    <div style="display: flex; flex-direction: column; width: 46%;">
                       <div
                         v-for="(chain, chainIndex) in row.pins"
                         :key="chainIndex"
@@ -410,7 +410,7 @@ const endExp = () => {
             :disabled="uploadDisabled"
             class="UploadBt"
             >
-              <el-button style="width: 100%;height: 100%;" :disabled="uploadDisabled">上传.V</el-button>
+              <el-button style="width: 100%;height: 100%; font-size: 20px;" :disabled="uploadDisabled">上传.V</el-button>
             </el-upload>
             <el-button class="expBt" v-if="isStart" @click="startExp">
               开始实验
@@ -422,7 +422,7 @@ const endExp = () => {
         </div>
       </div>
     </div>
-    
+    <span>网安学院</span>
   </div>
 </template>
 
@@ -482,7 +482,7 @@ const endExp = () => {
           margin-top: 6%;
           > span{
             font-size: 30px;
-            font-weight: 600;
+            font-weight: 400;
           }
         }
         .bindClk{
@@ -528,7 +528,7 @@ const endExp = () => {
             }
           }
           .putScroll{
-            width: 90%;
+            width: 94%;
             height: 80%;
             margin: 0 auto;
             .row {
@@ -568,7 +568,7 @@ const endExp = () => {
                 .chainPlus{
                   width: 12%; 
                   height: 64%; 
-                  margin-left: 5%; 
+                  margin-left: 3%; 
                   background-color: #FC654E; 
                   color: white;
                 }
@@ -605,6 +605,7 @@ const endExp = () => {
           .expBt{
             width: 35%;
             height: 40%;
+            font-size: 20px;
             color: white;
             background: linear-gradient(45deg, rgb(252, 101, 78), rgb(252, 123, 67));
           }
@@ -617,11 +618,12 @@ const endExp = () => {
   
   > span{
     position: absolute;
-    top: 6%;
+    bottom: 1%;
     right: 5%;
     font-size: 35px;
-    color: white;
+    color: black;
   }
+
 }
 ::v-deep .el-upload {
   width: 100%;

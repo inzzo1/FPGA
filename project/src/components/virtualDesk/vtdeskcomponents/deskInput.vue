@@ -83,7 +83,7 @@
                 </div>
                 <div class="inputOutBox" style="margin-left: 2%; width: 48%;">
                     <span>
-                        Input1:
+                        Input2:
                     </span>
                     <div class="inputInnerBox">
                         <span>0x</span>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="inputOutBox">
                     <span>
-                        Input2:
+                        Input1:
                     </span>
                     <div class="inputInnerBox">
                         <span>0x</span>
