@@ -104,10 +104,14 @@ export const loadHistory = (tag) => {
     return request.post('/fpga/cb/loadHistory',{},{params})
 }
 
-export const simulate = (formData) => {
-    return request.post('/fpga/simulate',formData)
+export const buildExperiment = (formData) => {
+    return request.post('/vb/build',formData)
 }
 
-export const stop = (sessionId) => {
-    return request.post(`/fpga/stop?sessionId=${sessionId}`)
+export const startExperiment = () => {
+    return request.post('/vb/start')
+}
+
+export const stopExperiment = () => {
+    return request.post(`/vb/finish`)
 }

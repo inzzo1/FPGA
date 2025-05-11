@@ -4,11 +4,11 @@ import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
-import {simulate, stop} from '@/api/boardApi'
+import {buildExperiment, stopExperiment, startExperiment} from '@/api/boardApi'
 
-let sessionId: string | undefined = undefined;
+// let sessionId: string | undefined = undefined;
 
-const socket = new WebSocket('ws://your-websocket-server-url');
+// const socket = new WebSocket('ws://your-websocket-server-url');
 
 
 // 在这里定义从后端/子组件获取的状态
@@ -16,71 +16,71 @@ const ledData = ref<number[]>([]);      // 用于渲染LED状态
 const buttonState = ref<any[]>([]);     // 用于记录按钮状态
 const switchState = ref<any[]>([]);     // 用于记录拨码开关状态
 
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  if (message.type === 'sessionId') {
-    sessionId = message.sessionId;  // 假设服务器返回的是这样的结构
-    console.log('Session ID:', sessionId);
-  }else if (message.type === 'signal') {
-    // 这里的所有信号都在 message.data 下
-    const allSignals = message.data; 
-    // allSignals示例： { SW01:0, SW00:0, SWB00:0, SWB01:1, L02:1, L01:0 }
+// socket.onmessage = (event) => {
+//   const message = JSON.parse(event.data);
+//   if (message.type === 'sessionId') {
+//     sessionId = message.sessionId;  // 假设服务器返回的是这样的结构
+//     console.log('Session ID:', sessionId);
+//   }else if (message.type === 'signal') {
+//     // 这里的所有信号都在 message.data 下
+//     const allSignals = message.data; 
+//     // allSignals示例： { SW01:0, SW00:0, SWB00:0, SWB01:1, L02:1, L01:0 }
 
-    // ① 解析LED，收集所有以 'L' 开头的键
-    const ledEntries = Object.entries(allSignals).filter(([key]) => key.startsWith('L'));
-    // ledEntries 形如： [ ['L02', 1], ['L01', 0], ... ]
+//     // ① 解析LED，收集所有以 'L' 开头的键
+//     const ledEntries = Object.entries(allSignals).filter(([key]) => key.startsWith('L'));
+//     // ledEntries 形如： [ ['L02', 1], ['L01', 0], ... ]
 
-    // ② 根据数字序号（“02”→2，“01”→1 等）排序
-    const sortedLedEntries = ledEntries.sort((a, b) => {
-      const aIndex = parseInt(a[0].slice(1)); // 去掉 'L' 后转数字
-      const bIndex = parseInt(b[0].slice(1));
-      return aIndex - bIndex;
-    });
+//     // ② 根据数字序号（“02”→2，“01”→1 等）排序
+//     const sortedLedEntries = ledEntries.sort((a, b) => {
+//       const aIndex = parseInt(a[0].slice(1)); // 去掉 'L' 后转数字
+//       const bIndex = parseInt(b[0].slice(1));
+//       return aIndex - bIndex;
+//     });
 
-    // ③ 构建新的数组，index 对应 L后面的数字，值是 0/1
-    const newLedData: number[] = [];
-    for (const [key, val] of sortedLedEntries) {
-      const ledIndex = parseInt(key.slice(1));
-      newLedData[ledIndex] = val as number; // 例如 0 或 1
-    }
+//     // ③ 构建新的数组，index 对应 L后面的数字，值是 0/1
+//     const newLedData: number[] = [];
+//     for (const [key, val] of sortedLedEntries) {
+//       const ledIndex = parseInt(key.slice(1));
+//       newLedData[ledIndex] = val as number; // 例如 0 或 1
+//     }
 
-    // ④ 更新到你的 ledData
-    ledData.value = newLedData;
-    console.log('LED data:', ledData.value);
-  }
-};
+//     // ④ 更新到你的 ledData
+//     ledData.value = newLedData;
+//     console.log('LED data:', ledData.value);
+//   }
+// };
 
-// 当从子组件接收到按钮状态变化时，发送给后端
-function handleButtonState(newButtonState: any[]) {
-  buttonState.value = newButtonState;
-  const mergedData = {
-    ...buttonState.value,
-    ...switchState.value
-  }
-  if (sessionId) {
-    socket.send(JSON.stringify({
-      type: 'signal',
-      sessionId,
-      data:mergedData
-    }));
-  }
-}
+// // 当从子组件接收到按钮状态变化时，发送给后端
+// function handleButtonState(newButtonState: any[]) {
+//   buttonState.value = newButtonState;
+//   const mergedData = {
+//     ...buttonState.value,
+//     ...switchState.value
+//   }
+//   if (sessionId) {
+//     socket.send(JSON.stringify({
+//       type: 'signal',
+//       sessionId,
+//       data:mergedData
+//     }));
+//   }
+// }
 
-// 当从子组件接收到拨码开关状态变化时，发送给后端
-function handleSwitchState(newSwitchState: any[]) {
-  switchState.value = newSwitchState;
-  const mergedData = {
-    ...buttonState.value,
-    ...switchState.value
-  }
-  if (sessionId) {
-    socket.send(JSON.stringify({
-      type: 'signal',
-      sessionId,
-      data:mergedData
-    }));
-  }
-}
+// // 当从子组件接收到拨码开关状态变化时，发送给后端
+// function handleSwitchState(newSwitchState: any[]) {
+//   switchState.value = newSwitchState;
+//   const mergedData = {
+//     ...buttonState.value,
+//     ...switchState.value
+//   }
+//   if (sessionId) {
+//     socket.send(JSON.stringify({
+//       type: 'signal',
+//       sessionId,
+//       data:mergedData
+//     }));
+//   }
+// }
 
 interface Row {
   signal: string;
@@ -187,9 +187,10 @@ const beforeUpload = (file: File) => {
   return false;  // 阻止自动上传
 };
 
-const isStart = ref(true)
+const isStart = ref(false)
+const isBuild = ref(false)
 
-const startExp = () => {
+const buildExp = async() => {
   const bindData = {
     clk: clk.value,
     inputRows: inputRows.value.map(row => ({
@@ -215,45 +216,49 @@ const startExp = () => {
     return;
   }
 
-  if (sessionId) {
-    formData.append('sessionId', sessionId);
-  } else {
-    ElMessageBox.alert('未获取到 sessionId', '错误', {
-      confirmButtonText: '确定',
-      type: 'error'
-    });
-    return;
+  formData.append('bindFile', bindBlob, 'bind.json');  
+    /* ---------- 4. 调用后端接口 ---------- */
+  try {
+    const { data } = await buildExperiment(formData);   // axios 默认把响应体包在 data
+    if (data.code === 0) {
+      // === 构建成功 ===
+      isBuild.value = true;                             // ✅ 允许点击“开始实验”
+      ElMessage.success('板卡构建成功！');
+    } else {
+      // === 后端返回失败（HTTP 200）===
+      throw new Error(data.msg || '板卡构建失败');
+    }
+  } catch (err: any) {
+    // === 网络 / 服务器异常 ===
+    isBuild.value = false;                              // 仍处于“未构建”状态
+    ElMessageBox.alert(
+      err.message || '板卡构建失败，请检查网络或服务器',
+      '错误',
+      { type: 'error' }
+    );
   }
-
-  formData.append('bindFile', bindBlob, 'bind.json');
-  console.log(JSON.stringify(bindData));
-  
-  simulate(formData)
-    .then((response) => {
-      console.log('模拟成功:', response);
-      
-      // 弹出模拟成功的提示框
-      ElMessageBox.alert('模拟成功！', '提示', {
-        confirmButtonText: '确定',
-        type: 'success'
-      }).then(() => {
-        // 成功后执行的操作（如果有）
-        isStart.value = !isStart.value;
-      });
-    })
-    .catch((error) => {
-      console.error('模拟失败:', error);
-      ElMessageBox.alert('模拟请求失败，请检查网络或服务器状态', '错误', {
-        confirmButtonText: '确定',
-        type: 'error'
-      });
-    });
 }
 
+/** === 开始实验 === */
+const startExp = async () => {
+  if (!isBuild.value) {
+    ElMessage.error('请先成功构造板卡，再开始实验');
+    return;
+  }
+  try {
+    await startExperiment();
+    isStart.value = true;
+    ElMessage.success('实验已开始');
+  } catch (err) {
+    ElMessage.error('开始实验出错，请稍后重试');
+  }
+};
+
 const endExp = () => {
-  stop(sessionId)
+  stopExperiment()
     .then(() => {
       isStart.value = !isStart.value;
+      isBuild.value = !isBuild.value
     })
     .catch((error) => {
       console.error('停止实验出错：', error);
@@ -412,10 +417,13 @@ const endExp = () => {
             >
               <el-button style="width: 100%;height: 100%; font-size: 20px;" :disabled="uploadDisabled">上传.V</el-button>
             </el-upload>
-            <el-button class="expBt" v-if="isStart" @click="startExp">
+            <el-button class="expBt" v-if="!isStart && !isBuild" @click="buildExp">
+              构造板卡
+            </el-button>
+            <el-button class="expBt" v-if="!isStart && isBuild" @click="startExp">
               开始实验
             </el-button>
-            <el-button class="expBt" v-if="!isStart" @click="endExp">
+            <el-button class="expBt" v-if="isStart && isBuild" @click="endExp">
               结束实验
             </el-button>
           </div>
