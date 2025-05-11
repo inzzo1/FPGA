@@ -45,18 +45,25 @@
         }
     };
 
+    /** 把输入格式化成十六进制两两分组的大写字符串 */
     const formatInput = (num: 0 | 1 | 2 | 3) => {
-        const key = `input${num}` as keyof InputFormType;
+    const key = `input${num}` as keyof InputFormType;
 
-        let value = inputForm.value[key].replace(/\D/g, ''); // 移除非数字字符
+    // 1. 去掉所有非 16 进制字符
+    let value = inputForm.value[key].replace(/[^0-9a-fA-F]/g, '');
 
-        if (value.length > 8) {
-            value = value.slice(0, 8); // 限制输入字符最多8对数字
-        }
-        // 格式化成每两个数字之间有一个空格
-        value = value.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+    // 2. 限制最多 8 个十六进制字符（= 4 组 “XX XX …”）
+    //    如果你想改成 16 个字符（8 组），把 8 改成 16 即可
+    if (value.length > 8) value = value.slice(0, 8);
 
-        inputForm.value[key] = value;
+    // 3. 统一转成大写
+    value = value.toUpperCase();
+
+    // 4. 每两个字符后插入一个空格（结尾不加）
+    value = value.replace(/([0-9A-F]{2})(?=[0-9A-F])/g, '$1 ').trim();
+
+    // 5. 回写到表单
+    inputForm.value[key] = value;
     };
 </script>
 
@@ -186,11 +193,12 @@
                             font-size: 17px;
                         }
                         input{
-                            font-size: 17px;
-                            width: 75%;
+                            font-size: 15px;
+                            width: 76%;
                             margin-left: 4%;
                             border-radius: 5px;
-                            padding: 0 6%;
+                            font-family: 'Menlo', 'SFMono-Regular', 'Roboto Mono', 'Consolas', monospace;
+                            padding: 0 3%;
                             border: none;
                             caret-color: transparent;
                             text-align: left;
