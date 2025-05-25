@@ -7,34 +7,20 @@
 
     const switcheData = ref(options.switcheData);
 
-    const emit = defineEmits(['updateSwitchState']);
-    
-    function generateSwitchState():Record<string,number>{
-      // 2) 把 switcheData.value 转成一个对象，形如：
-        //    { SW00:0, SW01:1, ... }
-        const switchObj: Record<string, number> = {};
-        // 遍历 switcheData.value
+    function getState(): Record<string, number> {
+        const obj: Record<string, number> = {}
         for (const item of switcheData.value) {
-          // 比如 item.number=0 => key='SW00'
-          // 如果 state=false => switchObj['SW00'] = 0
-          const key = 'SW' + String(item.number).padStart(2, '0');
-          switchObj[key] = item.state ? 1 : 0;
+            const key = 'SW' + String(item.number).padStart(2,'0')
+            obj[key] = item.state ? 1 : 0
         }
-
-        return switchObj
+        return obj
     }
 
-    // 点击切换拨码开关状态
-    const toggleSwitch = (index: number) => {
-        switcheData.value[index].state = !switcheData.value[index].state;
-        emit('updateSwitchState', generateSwitchState());
+    defineExpose({ getState })
 
-    };
-
-    onMounted(() => {
-      emit('updateSwitchState', generateSwitchState());
-    });
-
+    function toggleSwitch(idx: number) {
+        switcheData.value[idx].state = !switcheData.value[idx].state
+    }
 
 </script>
 

@@ -133,24 +133,24 @@
             ]
           },
           {
-            "label": "Input",
-            "value": "Input",
+            "label": "INPUT",
+            "value": "INPUT",
             "children": [
               {
-                "value": "Input0",
-                "label": "Input0"
+                "value": "INPUT0",
+                "label": "INPUT0"
               },
               {
-                "value": "Input1",
-                "label": "Input1"
+                "value": "INPUT1",
+                "label": "INPUT1"
               },
               {
-                "value": "Input2",
-                "label": "Input2"
+                "value": "INPUT2",
+                "label": "INPUT2"
               },
               {
-                "value": "Input3",
-                "label": "Input3"
+                "value": "INPUT3",
+                "label": "INPUT3"
               }
             ]
           }
@@ -243,32 +243,32 @@
             ]
           },
           {
-            "label": "Output",
-            "value": "Output",
+            "label": "OUTPUT",
+            "value": "OUTPUT",
             "children":[
               {
-                "value": "Output00",
-                "label": "Output00"
+                "value": "OUTPUT0",
+                "label": "OUTPUT0"
               },
               {
-                "value": "Output01",
-                "label": "Output01"
+                "value": "OUTPUT1",
+                "label": "OUTPUT1"
               },
               {
-                "value": "Output02",
-                "label": "Output02"
+                "value": "OUTPUT2",
+                "label": "OUTPUT2"
               },
               {
-                "value": "Output03",
-                "label": "Output03"
+                "value": "OUTPUT3",
+                "label": "OUTPUT3"
               },
               {
-                "value": "Output04",
-                "label": "Output04"
+                "value": "OUTPUT4",
+                "label": "OUTPUT4"
               },
               {
-                "value": "Output05",
-                "label": "Output05"
+                "value": "OUTPUT5",
+                "label": "OUTPUT5"
               }
             ]
           }

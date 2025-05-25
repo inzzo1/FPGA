@@ -1,26 +1,12 @@
 <script setup lang="ts">
     import Digit from '../../assets/LED/digit1.vue'
-    import { computed } from "vue";
+    import { computed, type PropType } from "vue";
     const props = defineProps({
-        tubeNumber:{
-            type: Number,
-            default: 0
-        },
-        isOutPut:{
-            type: Boolean,
-            default: false
-        },
-        showNumber: {
-            type: Number,
-            default: 99999999
-        }
+        tubeNumber:       { type: Number,              default: 0 },
+        isOutPut:         { type: Boolean,             default: false },
+        digitIndices:     { type: Array as PropType<number[]>, default: () => [] },
+        decimalPositions: { type: Array as PropType<number[]>, default: () => [] }
     })
-
-    const digits = computed(() => {
-        const str = props.showNumber.toString().padStart(8, '0');
-        // 2. 分割成字符数组并返回
-        return str.split(''); 
-    });
 
 </script>
 
@@ -29,13 +15,14 @@
         <div >
             <div class="wrap">
                 <Digit
-                v-for="(item, index) in digits"
-                :key="index"
-                :num ="parseInt(item, 10) + 1"
-                ></Digit>
+                v-for="(idx, i) in digitIndices"
+                :key="i"
+                :num="idx"
+                :showDot="decimalPositions.includes(i)"
+                />
             </div>
         </div>
-        <span v-if="props.isOutPut" :style="{fontSize: props.isOutPut? '12px' : '8px'}">Output0{{ props.tubeNumber }}</span>
+        <span v-if="props.isOutPut" :style="{fontSize: props.isOutPut? '11px' : '8px'}">OUTPUT{{ props.tubeNumber }}</span>
     </div>
 </template>
 

@@ -115,3 +115,7 @@ export const startExperiment = () => {
 export const stopExperiment = () => {
     return request.post(`/vb/finish`)
 }
+
+export const sendExpSignal = (payload) => {
+    return request.post(`/vb/signal`,payload)
+}

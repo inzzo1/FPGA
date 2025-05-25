@@ -4,83 +4,11 @@ import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
-import {buildExperiment, stopExperiment, startExperiment} from '@/api/boardApi'
+import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
 
-// let sessionId: string | undefined = undefined;
-
-// const socket = new WebSocket('ws://your-websocket-server-url');
-
-
-// 在这里定义从后端/子组件获取的状态
-const ledData = ref<number[]>([]);      // 用于渲染LED状态
-const buttonState = ref<any[]>([]);     // 用于记录按钮状态
-const switchState = ref<any[]>([]);     // 用于记录拨码开关状态
-
-// socket.onmessage = (event) => {
-//   const message = JSON.parse(event.data);
-//   if (message.type === 'sessionId') {
-//     sessionId = message.sessionId;  // 假设服务器返回的是这样的结构
-//     console.log('Session ID:', sessionId);
-//   }else if (message.type === 'signal') {
-//     // 这里的所有信号都在 message.data 下
-//     const allSignals = message.data; 
-//     // allSignals示例： { SW01:0, SW00:0, SWB00:0, SWB01:1, L02:1, L01:0 }
-
-//     // ① 解析LED，收集所有以 'L' 开头的键
-//     const ledEntries = Object.entries(allSignals).filter(([key]) => key.startsWith('L'));
-//     // ledEntries 形如： [ ['L02', 1], ['L01', 0], ... ]
-
-//     // ② 根据数字序号（“02”→2，“01”→1 等）排序
-//     const sortedLedEntries = ledEntries.sort((a, b) => {
-//       const aIndex = parseInt(a[0].slice(1)); // 去掉 'L' 后转数字
-//       const bIndex = parseInt(b[0].slice(1));
-//       return aIndex - bIndex;
-//     });
-
-//     // ③ 构建新的数组，index 对应 L后面的数字，值是 0/1
-//     const newLedData: number[] = [];
-//     for (const [key, val] of sortedLedEntries) {
-//       const ledIndex = parseInt(key.slice(1));
-//       newLedData[ledIndex] = val as number; // 例如 0 或 1
-//     }
-
-//     // ④ 更新到你的 ledData
-//     ledData.value = newLedData;
-//     console.log('LED data:', ledData.value);
-//   }
-// };
-
-// // 当从子组件接收到按钮状态变化时，发送给后端
-// function handleButtonState(newButtonState: any[]) {
-//   buttonState.value = newButtonState;
-//   const mergedData = {
-//     ...buttonState.value,
-//     ...switchState.value
-//   }
-//   if (sessionId) {
-//     socket.send(JSON.stringify({
-//       type: 'signal',
-//       sessionId,
-//       data:mergedData
-//     }));
-//   }
-// }
-
-// // 当从子组件接收到拨码开关状态变化时，发送给后端
-// function handleSwitchState(newSwitchState: any[]) {
-//   switchState.value = newSwitchState;
-//   const mergedData = {
-//     ...buttonState.value,
-//     ...switchState.value
-//   }
-//   if (sessionId) {
-//     socket.send(JSON.stringify({
-//       type: 'signal',
-//       sessionId,
-//       data:mergedData
-//     }));
-//   }
-// }
+const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
+const outputData  = ref<string[]>(['--------','--------','--------','--------','--------','--------'])
+const ledData     = ref<number[]>(Array(20).fill(0))
 
 interface Row {
   signal: string;
@@ -88,7 +16,7 @@ interface Row {
 }
 
 const uploadDisabled = ref(false);  
-
+const deskRef = ref<InstanceType<typeof VitualDesk>>()
 const clk = ref('')
 
 const inputRows = ref<Row[]>([
@@ -192,7 +120,7 @@ const isBuild = ref(false)
 
 const buildExp = async() => {
   const bindData = {
-    clk: clk.value,
+    CLk: clk.value,
     inputRows: inputRows.value.map(row => ({
       signal: row.signal,
       pins: row.pins.filter(pin => pin && pin !== '') // 只保留非 null 和非空字符串的值
@@ -265,6 +193,52 @@ const endExp = () => {
     });
 }
 
+const sendSignal = async () => {
+  const { button, sw, input } = deskRef.value?.getAllStates() || {}
+
+  // 你自己的格式化，比如把 input 里每行拼成字符串
+  const inputFields = Object.entries(input).reduce((acc, [k,v])=>{
+    acc[k] = v; // 或者做你自己的拼接
+    return acc
+  }, {} as Record<string,string>)
+
+  const payload = {
+    data: {
+      CLK: clk.value,
+      ...sw,
+      ...button,
+      ...inputFields
+    }
+  }
+
+  console.log('最终发给后端：', payload)
+  const resp = await sendExpSignal(payload)
+  if (resp.code !== 0) {
+    // 错误处理…
+    return
+  }
+  const d = resp.result.data as Record<string, any>
+
+  // ① 更新 LED 灯
+  ledData.value = []
+  for (let i = 0; i < 20; i++) {
+    const key = `L${String(i).padStart(2,'0')}`
+    ledData.value.push(d[key])
+  }
+
+  // ② 更新 小数点 数据 （DP00..DP05）
+  for (let i = 0; i < 6; i++) {
+    const key = `DP${String(i).padStart(2,'0')}`
+    decimalData.value[i] = d[key]
+  }
+
+  // ③ 更新 数码管 显示 （OUTPUT00..OUTPUT05）
+  for (let i = 0; i < 6; i++) {
+    const key = `OUTPUT${String(i).padStart(2,'0')}`
+    outputData.value[i] = d[key]
+  }
+}
+
 
 </script>
 
@@ -276,8 +250,9 @@ const endExp = () => {
         <div class="virDeskOutline">
           <VitualDesk
             :ledData="ledData"
-            @sendButtonState="handleButtonState"
-            @sendSwitchState="handleSwitchState"
+            :decimalData="decimalData"
+            :outputData="outputData"
+            ref="deskRef"
           />
         </div>
       </div>
@@ -396,7 +371,7 @@ const endExp = () => {
                         :key="chainIndex"
                         class="chain-item"
                       >
-                        <el-cascader v-model="row.pins[chainIndex]" :show-all-levels="false" clearable :options="outputOptions" style="width: 100%;" placeholder=" " />
+                        <el-cascader   class="mini-casc" v-model="row.pins[chainIndex]" :show-all-levels="false" clearable :options="outputOptions" style="width: 100%;" placeholder=" " />
                       </div>
                     </div>
                     <!-- 点击加号在当前行新增一个链式选择器 -->
@@ -430,6 +405,9 @@ const endExp = () => {
         </div>
       </div>
     </div>
+    <el-button @click="sendSignal" v-if="isStart && isBuild">
+      下传信号
+    </el-button>
     <span>网安学院</span>
   </div>
 </template>
@@ -640,6 +618,11 @@ const endExp = () => {
 
 ::v-deep .el-button {
   padding: 0;
+}
+
+:deep(.mini-casc .el-input__inner) {
+  font-size: 11px !important;
+  line-height: 1;              // 避免文字垂直居中时产生额外高度
 }
 
 

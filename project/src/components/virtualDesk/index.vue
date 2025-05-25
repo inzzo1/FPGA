@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-    import { ref, defineEmits, defineProps } from "vue";
+    import { ref, defineEmits, defineProps, type PropType } from "vue";
     import Header from "../header/deskHeader.vue"
     import TubeGroup from "./vtdeskcomponents/deskTubesGroup.vue"
     import DeskInput from "./vtdeskcomponents/deskInput.vue";
@@ -9,41 +9,46 @@
 
     // 接收从父组件（VituralBoard.vue）传进来的 ledData
     const props = defineProps({
-    ledData: {
-        type: Array,
-        default: () => [],
-    },
-    });
+      ledData:     { type: Array as PropType<number[]>, default: () => [] },
+      decimalData: { type: Array as PropType<string[]>, default: () => [] },
+      outputData:  { type: Array as PropType<string[]>, default: () => [] }
+    })
 
-    const buttonState = ref([]);
-    const switchState = ref([]);
-    const emit = defineEmits(['sendButtonState', 'sendSwitchState']);
+    // 拿到子组件实例
+    const btnComp = ref<InstanceType<typeof DeskButton>>()
+    const swComp  = ref<InstanceType<typeof DeskSwitch>>()
+    const inComp  = ref<InstanceType<typeof DeskInput>>()
 
-    const updateButtonState = (data) => {
-        buttonState.value = data;
-        emit('sendButtonState', buttonState.value)
+    // 对外暴露：一次拿齐所有状态
+    function getAllStates() {
+      return {
+        button: btnComp.value?.getState()  || {},
+        sw:     swComp.value?.getState()   || {},
+        input:  inComp.value?.getState()   || {}
+      }
     }
-
-    const updateSwitchState = (data) => {
-        switchState.value = data;
-        emit('sendSwitchState', switchState.value);
-    };
+    defineExpose({ getAllStates })
 </script>
 
 <template>
   <div class="outline">
     <Header style="margin-top: 2%; height: 13%; width: 90%; margin-left: 5%;"></Header>
-    <TubeGroup style="height: 38%;"></TubeGroup>
+    <TubeGroup 
+    style="height: 38%;"
+    :decimal-data="props.decimalData"
+    :output-data="props.outputData"
+    >
+    </TubeGroup>
     <div style="height: 20%; display: flex; margin-top: 1%;">
-      <DeskInput></DeskInput>
+      <DeskInput ref="inComp"></DeskInput>
       <!-- 将父组件传进来的 ledData 传给 DeskLED -->
       <DeskLED :ledData="props.ledData"></DeskLED>
     </div>
     <div style="height: 14%; display: flex; margin-top: 1%;">
       <!-- 监听按钮更新 -->
-      <DeskButton @updateButtonState="updateButtonState"></DeskButton>
+      <DeskButton ref="btnComp"></DeskButton>
       <!-- 监听拨码开关更新 -->
-      <DeskSwitch @updateSwitchState="updateSwitchState"></DeskSwitch>
+      <DeskSwitch ref="swComp"></DeskSwitch>
     </div>
   </div>
 </template>

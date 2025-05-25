@@ -6,28 +6,22 @@
 
 
     const buttonData = ref(options.buttonData);
-
-    const emit = defineEmits(['updateButtonState'])
-    // 提取公共函数，用于生成 button 状态对象
-    function generateButtonState(): Record<string, number> {
-        const buttonObj: Record<string, number> = {};
-        for (const item of buttonData.value) {
-            const key = 'SWB' + String(item.number).padStart(2, '0');
-            buttonObj[key] = item.state ? 1 : 0;
-        }
-        return buttonObj;
-    }
     
-    //点击切换按钮状态
-    const toggleButton = (index: number) => {
-        buttonData.value[index].state = !buttonData.value[index].state;
+    function getState(): Record<string, number> {
+        const obj: Record<string, number> = {}
+        for (const item of buttonData.value) {
+            const key = 'SWB' + String(item.number).padStart(2,'0')
+            obj[key] = item.state ? 1 : 0
+        }
+        return obj
+    }
 
-        emit('updateButtonState', generateButtonState());
-    };
-
-    onMounted(() => {
-        emit('updateButtonState', generateButtonState());
-    });
+    defineExpose({ getState })
+    
+    // 切换时只修改内部数据，不再发 emit
+    function toggleButton(idx: number) {
+        buttonData.value[idx].state = !buttonData.value[idx].state
+    }
 </script>
 
 <template>

@@ -65,6 +65,18 @@
     // 5. 回写到表单
     inputForm.value[key] = value;
     };
+    
+    // 暴露给上层调用，返回一个对象，键名可以根据你后端需要改
+    function getState(): Record<string,string> {
+     // 去掉空格，把16进制串恢复成连续 XXYYZZZZ
+    return {
+        INPUT0: inputForm.value.input0.replace(/\s/g, ''),
+        INPUT1: inputForm.value.input1.replace(/\s/g, ''),
+        INPUT2: inputForm.value.input2.replace(/\s/g, ''),
+        INPUT3: inputForm.value.input3.replace(/\s/g, '')
+        };
+    }
+   defineExpose({ getState });
 </script>
 
 <template>
@@ -73,7 +85,7 @@
             <div class="wrap">
                 <div class="inputOutBox">
                     <span>
-                        Input3:
+                        INPUT3:
                     </span>
                     <div class="inputInnerBox">
                         <span>0x</span>
@@ -90,7 +102,7 @@
                 </div>
                 <div class="inputOutBox" style="margin-left: 2%; width: 48%;">
                     <span>
-                        Input2:
+                        INPUT2:
                     </span>
                     <div class="inputInnerBox">
                         <span>0x</span>
@@ -107,7 +119,7 @@
                 </div>
                 <div class="inputOutBox">
                     <span>
-                        Input1:
+                        INPUT1:
                     </span>
                     <div class="inputInnerBox">
                         <span>0x</span>
@@ -124,7 +136,7 @@
                 </div>
                 <div class="inputOutBox" style="margin-left: 2%; width: 48%;">
                     <span>
-                        Input0:
+                        INPUT0:
                     </span>
                     <div class="inputInnerBox">
                         <span>0x</span>
@@ -179,7 +191,7 @@
                     > span{
                         width: 40%;
                         color: white;
-                        font-size: 18px;
+                        font-size: 14px;
                     }
                     .inputInnerBox{
                         height: 60%;
