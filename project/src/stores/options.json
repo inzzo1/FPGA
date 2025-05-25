@@ -271,6 +271,36 @@
                 "label": "OUTPUT5"
               }
             ]
+          },
+          {
+            "label": "DP",
+            "value": "DP",
+            "children":[
+              {
+                "value": "DP0",
+                "label": "DP0"
+              },
+              {
+                "value": "DP1",
+                "label": "DP1"
+              },
+              {
+                "value": "DP2",
+                "label": "DP2"
+              },
+              {
+                "value": "DP3",
+                "label": "DP3"
+              },
+              {
+                "value": "DP4",
+                "label": "DP4"
+              },
+              {
+                "value": "DP5",
+                "label": "DP5"
+              }
+            ]
           }
     ],
     "switcheData":[

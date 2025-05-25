@@ -118,6 +118,27 @@ const beforeUpload = (file: File) => {
 const isStart = ref(false)
 const isBuild = ref(false)
 
+const updateDisplay = (d: Record<string, any>) => {
+   // ① 更新 LED 灯
+   ledData.value = []
+   for (let i = 0; i < 20; i++) {
+     const key = `L${String(i).padStart(2,'0')}`
+     ledData.value.push(d[key])
+   }
+
+   // ② 更新 小数点 数据 （DP00..DP05）
+   for (let i = 0; i < 6; i++) {
+     const key = `DP${String(i).padStart(2,'0')}`
+     decimalData.value[i] = d[key]
+   }
+
+   // ③ 更新 数码管 显示 （OUTPUT00..OUTPUT05）
+   for (let i = 0; i < 6; i++) {
+     const key = `OUTPUT${String(i).padStart(2,'0')}`
+     outputData.value[i] = d[key]
+   }
+ }
+
 const buildExp = async() => {
   const bindData = {
     CLk: clk.value,
@@ -174,9 +195,14 @@ const startExp = async () => {
     return;
   }
   try {
-    await startExperiment();
-    isStart.value = true;
-    ElMessage.success('实验已开始');
+    const resp = await startExperiment();
+     if (resp.code !== 0) throw new Error(resp.msg || '开始实验失败');
+     isStart.value = true;
+     ElMessage.success('实验已开始');
+
+     // 拿到后端 data，更新界面
+     const d = resp.result.data as Record<string, any>;
+     updateDisplay(d);
   } catch (err) {
     ElMessage.error('开始实验出错，请稍后重试');
   }
@@ -217,26 +243,7 @@ const sendSignal = async () => {
     // 错误处理…
     return
   }
-  const d = resp.result.data as Record<string, any>
-
-  // ① 更新 LED 灯
-  ledData.value = []
-  for (let i = 0; i < 20; i++) {
-    const key = `L${String(i).padStart(2,'0')}`
-    ledData.value.push(d[key])
-  }
-
-  // ② 更新 小数点 数据 （DP00..DP05）
-  for (let i = 0; i < 6; i++) {
-    const key = `DP${String(i).padStart(2,'0')}`
-    decimalData.value[i] = d[key]
-  }
-
-  // ③ 更新 数码管 显示 （OUTPUT00..OUTPUT05）
-  for (let i = 0; i < 6; i++) {
-    const key = `OUTPUT${String(i).padStart(2,'0')}`
-    outputData.value[i] = d[key]
-  }
+  updateDisplay(resp.result.data as Record<string, any>);
 }
 
 
