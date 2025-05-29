@@ -2,7 +2,7 @@
 import VitualDesk from '@/components/virtualDesk/index.vue';
 import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
 
@@ -192,7 +192,7 @@ const buildExp = async() => {
     // === 网络 / 服务器异常 ===
     isBuild.value = false;                              // 仍处于“未构建”状态
     ElMessageBox.alert(
-      err.message || '板卡构建失败，请检查网络或服务器',
+      err.msg || '板卡构建失败，请检查网络或服务器',
       '错误',
       { type: 'error' }
     );
@@ -270,6 +270,12 @@ const sendSignal = async () => {
   }
   // 否则什么都不做，保持上一次的状态
 }
+
+onBeforeUnmount(() => {
+  if (isStart.value || isBuild.value) {
+    endExp();
+  }
+});
 
 
 </script>
@@ -422,8 +428,8 @@ const sendSignal = async () => {
             :disabled="uploadDisabled"
             class="UploadBt"
             >
-              <el-button style="width: 100%;height: 100%; font-size: 20px;" :disabled="uploadDisabled" v-if="!isStart || !isBuild">上传.V</el-button>
-              <el-button style="width: 100%;height: 100%; font-size: 20px;" @click="sendSignal" v-if="isStart && isBuild">下传信号</el-button>
+              <el-button style="width: 100%;height: 100%; font-size: 20px;" class="upload-btn" :disabled="uploadDisabled" v-if="!isStart || !isBuild">上传.V</el-button>
+              <el-button style="width: 100%;height: 100%; font-size: 20px;" class="send-btn" @click="sendSignal" v-if="isStart && isBuild">下传信号</el-button>
             </el-upload>
             <el-button class="expBt" 
             :loading="isBuilding"
@@ -621,9 +627,17 @@ const sendSignal = async () => {
           .UploadBt{
             width: 35%;
             height: 40%;
-            .el-button{
-              color: white;
+            .el-button.upload-btn {
               background: linear-gradient(45deg, rgb(228, 131, 34), rgb(226, 182, 93));
+              color: white;
+            }
+            .el-button.upload-btn:disabled {
+              background: #ccc;
+              color: #888;
+            }
+            .el-button.send-btn {
+              background: linear-gradient(45deg, #4CAF50, #8BC34A);
+              color: white;
             }
           }
           .expBt{
