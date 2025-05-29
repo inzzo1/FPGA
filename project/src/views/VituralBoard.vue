@@ -141,6 +141,13 @@ const updateDisplay = (d: Record<string, any>) => {
    }
  }
 
+ function resetDisplay() {
+    ledData.value     = Array(20).fill(0)
+    decimalData.value = Array(6).fill('00000000')
+    outputData.value  = Array(6).fill('--------')
+}
+
+
 const buildExp = async() => {
   const bindData = {
     CLk: clk.value,
@@ -223,6 +230,7 @@ const endExp = () => {
     .then(() => {
       isStart.value = !isStart.value;
       isBuild.value = !isBuild.value
+      resetDisplay()
     })
     .catch((error) => {
       console.error('停止实验出错：', error);
@@ -247,13 +255,20 @@ const sendSignal = async () => {
     }
   }
 
-  console.log('最终发给后端：', payload)
   const resp = await sendExpSignal(payload)
   if (resp.data.code !== 0) {
-    // 错误处理…
+    // 错误处理
     return
   }
-  updateDisplay(resp.data.result.data as Record<string, any>);
+
+  // 拿到后端 data（可能是 {}）
+  const d = resp.data.result.data as Record<string, any> || {}
+
+  // 只有当 data 对象里至少有一个 key 时才更新
+  if (Object.keys(d).length > 0) {
+    updateDisplay(d)
+  }
+  // 否则什么都不做，保持上一次的状态
 }
 
 
@@ -407,7 +422,8 @@ const sendSignal = async () => {
             :disabled="uploadDisabled"
             class="UploadBt"
             >
-              <el-button style="width: 100%;height: 100%; font-size: 20px;" :disabled="uploadDisabled">上传.V</el-button>
+              <el-button style="width: 100%;height: 100%; font-size: 20px;" :disabled="uploadDisabled" v-if="!isStart || !isBuild">上传.V</el-button>
+              <el-button style="width: 100%;height: 100%; font-size: 20px;" @click="sendSignal" v-if="isStart && isBuild">下传信号</el-button>
             </el-upload>
             <el-button class="expBt" 
             :loading="isBuilding"
@@ -430,9 +446,6 @@ const sendSignal = async () => {
         </div>
       </div>
     </div>
-    <el-button @click="sendSignal" v-if="isStart && isBuild">
-      下传信号
-    </el-button>
     <span>网安学院</span>
   </div>
 </template>
