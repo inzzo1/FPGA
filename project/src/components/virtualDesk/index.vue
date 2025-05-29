@@ -35,8 +35,8 @@
     <Header style="margin-top: 2%; height: 13%; width: 90%; margin-left: 5%;"></Header>
     <TubeGroup 
     style="height: 38%;"
-    :decimal-data="props.decimalData"
-    :output-data="props.outputData"
+    :decimalData="props.decimalData"
+    :outputData="props.outputData"
     >
     </TubeGroup>
     <div style="height: 20%; display: flex; margin-top: 1%;">

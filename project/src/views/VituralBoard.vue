@@ -18,6 +18,8 @@ interface Row {
 const uploadDisabled = ref(false);  
 const deskRef = ref<InstanceType<typeof VitualDesk>>()
 const clk = ref('')
+const isBuilding = ref(false)
+const isStarting = ref(false)
 
 const inputRows = ref<Row[]>([
   {
@@ -128,13 +130,13 @@ const updateDisplay = (d: Record<string, any>) => {
 
    // ② 更新 小数点 数据 （DP00..DP05）
    for (let i = 0; i < 6; i++) {
-     const key = `DP${String(i).padStart(2,'0')}`
+     const key = `DP${String(i)}`
      decimalData.value[i] = d[key]
    }
 
    // ③ 更新 数码管 显示 （OUTPUT00..OUTPUT05）
    for (let i = 0; i < 6; i++) {
-     const key = `OUTPUT${String(i).padStart(2,'0')}`
+     const key = `OUTPUT${String(i)}`
      outputData.value[i] = d[key]
    }
  }
@@ -166,6 +168,8 @@ const buildExp = async() => {
   }
 
   formData.append('bindFile', bindBlob, 'bind.json');  
+  if (isBuilding.value) return            // 已经在构建中，就不重复触发
+  isBuilding.value = true
     /* ---------- 4. 调用后端接口 ---------- */
   try {
     const { data } = await buildExperiment(formData);   // axios 默认把响应体包在 data
@@ -185,6 +189,8 @@ const buildExp = async() => {
       '错误',
       { type: 'error' }
     );
+  } finally {
+    isBuilding.value = false             // 无论成功失败，都恢复按钮可点
   }
 }
 
@@ -194,17 +200,21 @@ const startExp = async () => {
     ElMessage.error('请先成功构造板卡，再开始实验');
     return;
   }
+  if (isStarting.value) return
+  isStarting.value = true
   try {
     const resp = await startExperiment();
-     if (resp.code !== 0) throw new Error(resp.msg || '开始实验失败');
-     isStart.value = true;
-     ElMessage.success('实验已开始');
+    if (resp.data.code !== 0) throw new Error(resp.data.msg || '开始实验失败');
+    isStart.value = true;
+    ElMessage.success('实验已开始');
 
      // 拿到后端 data，更新界面
-     const d = resp.result.data as Record<string, any>;
+     const d = resp.data.result.data as Record<string, any>;
      updateDisplay(d);
   } catch (err) {
     ElMessage.error('开始实验出错，请稍后重试');
+  } finally {
+    isStarting.value = false
   }
 };
 
@@ -239,11 +249,11 @@ const sendSignal = async () => {
 
   console.log('最终发给后端：', payload)
   const resp = await sendExpSignal(payload)
-  if (resp.code !== 0) {
+  if (resp.data.code !== 0) {
     // 错误处理…
     return
   }
-  updateDisplay(resp.result.data as Record<string, any>);
+  updateDisplay(resp.data.result.data as Record<string, any>);
 }
 
 
@@ -399,10 +409,18 @@ const sendSignal = async () => {
             >
               <el-button style="width: 100%;height: 100%; font-size: 20px;" :disabled="uploadDisabled">上传.V</el-button>
             </el-upload>
-            <el-button class="expBt" v-if="!isStart && !isBuild" @click="buildExp">
+            <el-button class="expBt" 
+            :loading="isBuilding"
+            :disabled="isBuilding || isStart"
+            v-if="!isStart && !isBuild" 
+            @click="buildExp">
               构造板卡
             </el-button>
-            <el-button class="expBt" v-if="!isStart && isBuild" @click="startExp">
+            <el-button class="expBt" 
+            :loading="isStarting"
+            :disabled="isStarting || !isBuild"
+            v-if="!isStart && isBuild" 
+            @click="startExp">
               开始实验
             </el-button>
             <el-button class="expBt" v-if="isStart && isBuild" @click="endExp">

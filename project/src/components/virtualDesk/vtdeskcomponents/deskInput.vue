@@ -108,7 +108,7 @@
                         <span>0x</span>
                         <input
                         v-model="inputForm.input1"
-                        @input="formatInput(1)"
+                        @input="formatInput(2)"
                         @focus="hidePlaceholder(1)"
                         @blur="showPlaceholder(1)"
                         :placeholder="placeholders.input1"

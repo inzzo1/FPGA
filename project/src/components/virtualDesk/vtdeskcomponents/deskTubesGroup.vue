@@ -13,25 +13,31 @@
         '9':10,'A':11,'B':12,'C':13,'D':14,'E':15,'F':16
     }
 
-// 8 位数码管的配置数组
     const tubeData = computed(() => {
-    return props.outputData.map((hexStr, tubeIndex) => {
-        // 保证 8 字符且大写
-        const str = hexStr.toUpperCase().padStart(8,'0').slice(-8)
-        const digitIndices = str.split('').map(ch => char2idx[ch] ?? 0)
+        // 总是渲染 6 根管
+        return Array.from({ length: 6 }, (_, tubeIndex) => {
+            // 如果 props.outputData 不足 6 个，hexStr 会 fallback
+            const rawHex = props.outputData[tubeIndex] ?? '--------'
+            // 转大写并保持 8 字符，右边补 '-' 保证都是 8
+            const str = rawHex.toUpperCase().padEnd(8, '-').slice(0, 8)
+            const digitIndices = str.split('').map(ch => char2idx[ch] ?? 0)
 
-        // 掩码字符串，找出所有要点亮的小数点下标
-        const mask = props.decimalData[tubeIndex] || '00000000'
-        const decimalPositions: number[] = []
-        mask.split('').forEach((bit, i) => { if (bit === '1') decimalPositions.push(i) })
+            // 同理，对 decimalData 做防越界 fallback
+            const mask = (props.decimalData[tubeIndex] ?? '00000000')
+            .padEnd(8, '0')
+            .slice(0, 8)
+            const decimalPositions: number[] = []
+            mask.split('').forEach((bit, i) => {
+            if (bit === '1') decimalPositions.push(i)
+            })
 
-        return {
-        tubeNumber: tubeIndex,
-        isOutPut:   true,
-        digitIndices,
-        decimalPositions
-        }
-    })
+            return {
+            tubeNumber: tubeIndex,
+            isOutPut:   true,
+            digitIndices,
+            decimalPositions
+            }
+        })
     })
 </script>
     
