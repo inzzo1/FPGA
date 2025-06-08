@@ -153,15 +153,23 @@ const buildExp = async() => {
     CLk: clk.value,
     inputRows: inputRows.value.map(row => ({
       signal: row.signal,
-      pins: row.pins.filter(pin => pin && pin !== '') // 只保留非 null 和非空字符串的值
+      pins: row.pins
+        .filter(pin => pin && pin !== '')      // 先把空的过滤掉
+        .map(path => Array.isArray(path)        // path 是个数组 e.g. ["DP","DP0"]
+          ? path[path.length - 1]               // 取最后一项 "DP0"
+          : path
+      )
     })),
     outputRows: outputRows.value.map(row => ({
       signal: row.signal,
-      pins: row.pins.filter(pin => pin && pin !== '') // 只保留非 null 和非空字符串的值
+      pins: row.pins
+        .filter(pin => pin && pin !== '')
+        .map(path => Array.isArray(path) ? path[path.length - 1] : path)
     }))
   };
   const formData = new FormData();
   const bindBlob = new Blob([JSON.stringify(bindData)], { type: 'application/json' });
+  console.log(bindData)
 
   if (fileList.value.length > 0 && fileList.value[0].raw) {
     formData.append('verilogFile', fileList.value[0].raw);
@@ -360,8 +368,10 @@ onBeforeUnmount(() => {
                       </div>
                     </div>
                     <!-- 点击加号在当前行新增一个链式选择器 --> 
-                    <el-button @click="addInputChain(rowIndex)" :icon="Plus" class="chainPlus"></el-button>
-                    <el-button @click="removeInputChain(rowIndex)" :icon="Minus" :disabled="row.pins.length <= 1" class="chainMinus"></el-button>
+                     <div style="width: 30%;height: 100%;">
+                      <el-button @click="addInputChain(rowIndex)" :icon="Plus" class="chainPlus"></el-button>
+                      <el-button @click="removeInputChain(rowIndex)" :icon="Minus" :disabled="row.pins.length <= 1" class="chainMinus"></el-button>
+                     </div>
                   </div>
                 </div>
               </el-scrollbar>
@@ -413,8 +423,10 @@ onBeforeUnmount(() => {
                       </div>
                     </div>
                     <!-- 点击加号在当前行新增一个链式选择器 -->
-                    <el-button @click="addOutputChain(rowIndex)" :icon="Plus" class="chainPlus"></el-button>
-                    <el-button @click="removeOutputChain(rowIndex)" :icon="Minus" :disabled="row.pins.length <= 1" class="chainMinus"></el-button>
+                    <div style="width: 30%;height: 100%;">
+                      <el-button @click="addOutputChain(rowIndex)" :icon="Plus" class="chainPlus"></el-button>
+                      <el-button @click="removeOutputChain(rowIndex)" :icon="Minus" :disabled="row.pins.length <= 1" class="chainMinus"></el-button>
+                    </div>
                   </div>
                 </div>
               </el-scrollbar>
@@ -594,17 +606,16 @@ onBeforeUnmount(() => {
                 display: flex;
                 align-items: flex-start;
                 width: 60%;
-                height: 40px;
                 .chainPlus{
-                  width: 12%; 
-                  height: 64%; 
+                  width: 47%; 
+                  height: 28px; 
                   margin-left: 3%; 
                   background-color: #FC654E; 
                   color: white;
                 }
                 .chainMinus{
-                  width: 12%; 
-                  height: 64%; 
+                  width: 47%; 
+                  height: 28px; 
                   margin-left: 3%; 
                   background-color: #D4DBA1; 
                   color: white;
