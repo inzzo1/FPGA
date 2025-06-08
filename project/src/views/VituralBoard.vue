@@ -5,6 +5,7 @@ import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
+import { data } from 'autoprefixer';
 
 const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
 const outputData  = ref<string[]>(['--------','--------','--------','--------','--------','--------'])
@@ -238,11 +239,38 @@ const endExp = () => {
     .then(() => {
       isStart.value = !isStart.value;
       isBuild.value = !isBuild.value
+      uploadDisabled.value = !uploadDisabled.value
       resetDisplay()
     })
     .catch((error) => {
       console.error('停止实验出错：', error);
     });
+}
+
+const clkFlag = ref(0)
+
+const sendSignalTest = async () => {
+  clkFlag.value = clkFlag.value === 1 ? 0 : 1;
+
+  const payload = {
+    data: {
+      CLK: clkFlag.value,
+    }
+  }
+  console.log(payload)
+  const resp = await sendExpSignal(payload)
+  if (resp.data.code !== 0) {
+    // 错误处理
+    return
+  }
+
+  // 拿到后端 data（可能是 {}）
+  const d = resp.data.result.data as Record<string, any> || {}
+
+  // 只有当 data 对象里至少有一个 key 时才更新
+  if (Object.keys(d).length > 0) {
+    updateDisplay(d)
+  }
 }
 
 const sendSignal = async () => {
@@ -320,6 +348,7 @@ onBeforeUnmount(() => {
               >
 
               </el-input>
+              <el-button @click="sendSignalTest">传信号</el-button>
             </div>
           </div>
           <div class="bind">
