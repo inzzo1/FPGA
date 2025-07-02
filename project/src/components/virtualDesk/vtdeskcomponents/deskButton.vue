@@ -34,12 +34,15 @@
                         @click="toggleButton(index)"
                         style="width: 110%; height: auto;"
                         />
-                        <span>SWB0{{ item.number }}</span>
+                        <span>0{{ item.number }}</span>
                     </div>
                 </div>
             </div>
             <span>
                 按钮
+            </span>
+            <span>
+                —SWB
             </span>
         </div>
 </template>
@@ -74,21 +77,28 @@
                     justify-content: center;
                     user-select: none;
                     span{
-                        margin-top: 20%;
                         color: #FBD400;
-                        font-size: 9px;
+                        font-size: 13px;
                         font-weight: 400;
                     }
                 }
             }
         }
-        > span{
+        > span:first-of-type {
             color: white;
             position: absolute;
-            top: -4%;
+            top: -7%;
             left: 5%;
             font-size: 18px;
             background-color: #343434;
-        }
+            }
+        > span:nth-of-type(2) {
+            color: white;
+            position: absolute;
+            top: -4%;
+            left: 15%;
+            font-size: 13px;
+            background-color: #343434;
+            }
         }
 </style>

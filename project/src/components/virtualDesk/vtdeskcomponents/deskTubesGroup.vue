@@ -83,8 +83,10 @@
                 width: 92%;
                 height: 90%;
                 display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
+                flex-direction: column-reverse;
+                flex-wrap: wrap-reverse;
+                justify-content: center;
+                align-items: center;
                 // background-color: aliceblue; 
             }
         }

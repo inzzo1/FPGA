@@ -10,7 +10,7 @@
 <template>
      <div class="header">
         <span style="font-size: 2vw;">杭州电子科技大学</span>
-        <span style="font-size: 2vw;">{{ props.headerName }}</span>
+        <span style="font-size: 1.5vw;">{{ props.headerName }}</span>
      </div>
 </template>
     

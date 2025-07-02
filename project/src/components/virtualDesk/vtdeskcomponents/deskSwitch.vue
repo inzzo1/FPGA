@@ -34,12 +34,15 @@
               style="width: 140%; height: auto; margin-top: 40%; transform: rotate(270deg);"
               @click="toggleSwitch(index)"
             />
-            <span>SW{{ String(item.number).padStart(2, '0') }}</span>
+            <span>{{ String(item.number).padStart(2, '0') }}</span>
           </div>
         </div>
       </div>
       <span>
         拨码开关
+      </span>
+      <span>
+        —SW
       </span>
     </div>
   </template>
@@ -75,20 +78,28 @@
                     align-items: center;
                     user-select: none;
                     span{
-                        padding-top: 50%;
                         color: #4CA2FF;
-                        font-size: 8px;
+                        padding-top: 30%;
+                        font-size: 12px;
                     }
                 }
             }
         }
-        > span{
+        > span:first-of-type{
             color: white;
             position: absolute;
             top: -3%;
             left: 5%;
             font-size: 18px;
             background-color: #343434;
-        }
+          }
+        > span:nth-of-type(2){
+            color: white;
+            position: absolute;
+            top: 0;
+            left: 19%;
+            font-size: 13px;
+            background-color: #343434;
+          }
         }
 </style>

@@ -5,7 +5,6 @@ import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
-import { data } from 'autoprefixer';
 
 const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
 const outputData  = ref<string[]>(['--------','--------','--------','--------','--------','--------'])
@@ -40,6 +39,7 @@ const inputOptions = options.inputOptions;
 const outputOptions = options.outputOptions;
 
 const addInputRow = () => {
+  console.log('put')
   inputRows.value.push({
     signal: '',
     pins: ['']
@@ -87,36 +87,55 @@ const fileList = ref<UploadUserFile[]>(
   []
 );
 
-const beforeUpload = (file: File) => {
-  console.log('File selected:', file);
-  if (!file.name.toLowerCase().endsWith('.v')) {
-    ElMessageBox.alert('请选择 .v 文件', '文件格式错误', {
-      confirmButtonText: '确定',
-      type: 'error'
-    });
-    return false; // 阻止上传
-  }
-  
-  // 手动添加文件到 fileList
-  fileList.value.push({
-    name: file.name,
-    percentage: 0,
-    status: 'ready',
-    size: file.size,
-    raw: file,
-    uid: Date.now(), // 生成一个唯一的 uid
-  });
-  
-  ElMessageBox.alert('上传成功', '提示', {
-    confirmButtonText: '确定'
-  }).then(() => {
-    // 当用户点击“确定”后，禁用上传按钮
-    uploadDisabled.value = true;
-  });
+let changeTimer: number | null = null;
 
-  
-  return false;  // 阻止自动上传
-};
+function handleChange(_file: UploadUserFile, uploadFiles: UploadUserFile[]) {
+  // 每来一次 change，都重置定时器
+  if (changeTimer) window.clearTimeout(changeTimer);
+
+  // 延迟 100ms 后执行真正的验证逻辑
+  changeTimer = window.setTimeout(() => {
+    // 1. 拿到所有原生 File 对象
+    const raws = uploadFiles
+      .map(f => f.raw as File)
+      .filter(Boolean);
+
+    // 2. 看看有没有非 .v 文件
+    const badFiles = raws.filter(f => !f.name.toLowerCase().endsWith('.v'));
+
+    if (badFiles.length) {
+      // 3a. 有一票否决的，整批取消
+      uploadFiles.splice(0, uploadFiles.length);
+      fileList.value.splice(0, fileList.value.length);
+      ElMessageBox.alert(
+        '文件中包含非 .v 文件（已全部取消）：\n' +
+          badFiles.map(f => `• ${f.name}`).join('\n'),
+        '文件格式错误',
+        { confirmButtonText: '我知道了', type: 'error' }
+      );
+    } else {
+      // 3b. 全都是 .v，重置旧列表，一次性添加所有
+      fileList.value = raws.map(f => ({
+        name:       f.name,
+        percentage: 0,
+        status:     'ready' as const,
+        size:       f.size,
+        raw:        f,
+        uid:        Date.now() + Math.random()
+      }));
+      ElMessageBox.alert(
+        `已成功添加 ${raws.length} 个 .v 文件`,
+        '上传成功',
+        { confirmButtonText: '确定' }
+      ).then(() => {
+        uploadDisabled.value = true;
+      });
+    }
+
+    // 清掉定时器引用，下次才能重建
+    changeTimer = null;
+  }, 100);
+}
 
 const isStart = ref(false)
 const isBuild = ref(false)
@@ -151,7 +170,7 @@ const updateDisplay = (d: Record<string, any>) => {
 
 const buildExp = async() => {
   const bindData = {
-    CLk: clk.value,
+    CLK: clk.value,
     inputRows: inputRows.value.map(row => ({
       signal: row.signal,
       pins: row.pins
@@ -173,7 +192,10 @@ const buildExp = async() => {
   console.log(bindData)
 
   if (fileList.value.length > 0 && fileList.value[0].raw) {
-    formData.append('verilogFile', fileList.value[0].raw);
+    for (let i = 0; i < fileList.value.length; i++) {
+      const file = fileList.value[i].raw;
+      formData.append('verilogFile', file);  // 名称相同，append 多次
+    }
   } else {
     ElMessageBox.alert('请选择 .v 文件', '文件格式错误', {
       confirmButtonText: '确定',
@@ -348,7 +370,7 @@ onBeforeUnmount(() => {
               >
 
               </el-input>
-              <el-button @click="sendSignalTest">传信号</el-button>
+              <el-button @click="sendSignalTest" type="warning" plain>传信号</el-button>
             </div>
           </div>
           <div class="bind">
@@ -358,6 +380,7 @@ onBeforeUnmount(() => {
               </span>
             </div>
             <div class="putScroll">
+              <el-button @click="addInputRow" :icon="Plus" class="rowPlus"></el-button>
               <el-scrollbar height="100%">
                 <div
                   v-for="(row, rowIndex) in inputRows"
@@ -366,16 +389,12 @@ onBeforeUnmount(() => {
                 >
                   <!-- 左侧：input 和对应的加号 -->
                   <div class="put-part">
+                    <el-icon class="close-icon" style="font-size: 12px;" @click="removeInputRow(rowIndex)" ><Close /></el-icon>
                     <div>
                       <span>
                         Input:
                       </span>
                       <el-input v-model="row.signal" type="text" style="width: 50%"/>
-                    </div>
-                    <!-- 点击加号新增一行 -->
-                    <div style="width: 100%; height: 26px;">
-                      <el-button @click="addInputRow" :icon="Plus" class="rowPlus"></el-button>
-                      <el-button @click="removeInputRow(rowIndex)" :icon="Minus" :disabled="inputRows.length <= 1" class="rowMinus"></el-button>
                     </div>
                   </div>
                   
@@ -413,6 +432,7 @@ onBeforeUnmount(() => {
               </span>
             </span>
             <div class="putScroll">
+              <el-button @click="addOutputRow" :icon="Plus" class="rowPlus"></el-button>
               <el-scrollbar height="100%">
                 <div
                   v-for="(row, rowIndex) in outputRows"
@@ -420,18 +440,19 @@ onBeforeUnmount(() => {
                   class="row"
                 >
                   <!-- 左侧：input 和对应的加号 -->
-                  <div class="put-part" style="width: 40%;height: 66px;">
+                  <div class="put-part">
                     <div style="width: 100%; height: 36px;">
-                      <span style="font-size: 16px;">
+                      <el-icon class="close-icon" style="font-size: 12px;" @click="removeOutputRow(rowIndex)" ><Close /></el-icon>
+                      <span style="font-size: 14px;">
                         Output:
                       </span>
-                      <el-input v-model="row.signal" type="text" style="width: 48%"/>
+                      <el-input v-model="row.signal" type="text" style="width: 44%"/>
                     </div>
-                    <!-- 点击加号新增一行 -->
+                    <!-- 点击加号新增一行
                     <div style="width: 100%; height: 26px;">
                       <el-button @click="addOutputRow" :icon="Plus" class="rowPlus"></el-button>
                       <el-button @click="removeOutputRow(rowIndex)" :icon="Minus" :disabled="outputRows.length <= 1" class="rowMinus"></el-button>
-                    </div>
+                    </div> -->
                   </div>
                   
                   <!-- 右侧：链式选择器和对应的加号 -->
@@ -465,11 +486,12 @@ onBeforeUnmount(() => {
             <el-upload
             :file-list="fileList"
             multiple
-            :before-upload="beforeUpload"
+            :before-upload="() => false"
             :disabled="uploadDisabled"
+            :on-change="handleChange"
             class="UploadBt"
             >
-              <el-button style="width: 100%;height: 100%; font-size: 20px;" class="upload-btn" :disabled="uploadDisabled" v-if="!isStart || !isBuild">上传.V</el-button>
+              <el-button style="width: 100%;height: 100%; font-size: 20px;" class="upload-btn" @click="onUploadClick" :disabled="uploadDisabled" v-if="!isStart || !isBuild">上传.V</el-button>
               <el-button style="width: 100%;height: 100%; font-size: 20px;" class="send-btn" @click="sendSignal" v-if="isStart && isBuild">下传信号</el-button>
             </el-upload>
             <el-button class="expBt" 
@@ -493,7 +515,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
-    <span>网安学院</span>
+    <span>浙江省网络空间安全实验教学示范中心</span>
   </div>
 </template>
 
@@ -547,9 +569,10 @@ onBeforeUnmount(() => {
         height: 100%;
         border-radius: 30px;
         .bindHeader{
-          width: 90%;
+          width: 100%;
           height: 10%;
-          margin: 0 auto;
+          display: flex;
+          justify-content: center;
           margin-top: 6%;
           > span{
             font-size: 30px;
@@ -576,6 +599,11 @@ onBeforeUnmount(() => {
               width: 40%;
               height: 70%;
             }
+            > .el-button{
+              width: 20%;
+              height: 80%;
+              margin-left: auto;
+            }
           }
         }
         .bind{
@@ -599,9 +627,20 @@ onBeforeUnmount(() => {
             }
           }
           .putScroll{
-            width: 94%;
+            width: 100%;
             height: 80%;
             margin: 0 auto;
+            position: relative;
+            .rowPlus{
+                width: 7%; 
+                height: 14%; 
+                position: absolute;
+                bottom: 1%;
+                left: 47.5%;
+                z-index: 10; 
+                background-color: #ECAF72;
+                color: white;
+            }
             .row {
               display: flex;
               align-items: flex-start;
@@ -609,14 +648,9 @@ onBeforeUnmount(() => {
               width: 100%;
               .put-part {
                 display: flex;
-                flex-direction: column;
+                align-items: center;
+                justify-content: center;
                 width: 40%;
-                .rowPlus{
-                  width: 20%; 
-                  height: 100%; 
-                  background-color: #ECAF72;
-                  color: white;
-                }
                 .rowMinus{
                   width: 20%; 
                   height: 100%; 
@@ -625,7 +659,7 @@ onBeforeUnmount(() => {
                   margin-left: 5%;
                 }
                 span{
-                  font-size: 18px;
+                  font-size: 16px;
                 }
                 button{
                   margin: 1px;
@@ -696,10 +730,14 @@ onBeforeUnmount(() => {
   
   > span{
     position: absolute;
-    bottom: 1%;
-    right: 5%;
-    font-size: 35px;
+    bottom: 2%;
+    left: 35%;
+    font-size: 30px;
     color: black;
+    font-family: "KaiTi",       /* Windows 中对应“楷体” */ 
+               "楷体",        /* 中文名称回退 */
+               "楷体_GB2312",/* 兼容部分老系统字体名 */
+               serif;        /* 最后再回退到衬线字体 */
   }
 
 }
@@ -721,6 +759,21 @@ onBeforeUnmount(() => {
 ::v-deep .clkInput .el-input__wrapper{
   background-color: #FDE6D5 !important;
   color: white !important;
+}
+
+/* 1. 默认隐藏所有的关闭图标 */
+.close-icon {
+  opacity: 0;
+  transition: opacity 0.2s;
+  /* 如果想要完全移除布局影响，可用 visibility:hidden + visibility:visible */
+  /* visibility: hidden; */
+}
+
+/* 2. 当鼠标移到 .row 上时，显示该行里的关闭图标 */
+.row:not(:only-child):hover .close-icon {
+  opacity: 1;
+  cursor: pointer;
+  /* 或者 visibility: visible; */
 }
 
 </style>
