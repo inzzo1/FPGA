@@ -11,8 +11,8 @@ const outputData  = ref<string[]>(['--------','--------','--------','--------','
 const ledData     = ref<number[]>(Array(20).fill(0))
 
 interface Row {
-  signal: string;
-  pins: string[];
+  signal: string
+  pins: string[][]     // 纯二维数组，每个子数组就是一条完整路径
 }
 
 const uploadDisabled = ref(false);  
@@ -22,17 +22,11 @@ const isBuilding = ref(false)
 const isStarting = ref(false)
 
 const inputRows = ref<Row[]>([
-  {
-    signal: '',
-    pins: ['']
-  }
+  { signal: '', pins: [['']] }
 ]);
 
 const outputRows = ref<Row[]>([
-  {
-    signal: '',
-    pins: ['']
-  }
+  { signal: '', pins: [['']] }
 ]);
 
 const inputOptions = options.inputOptions;
@@ -42,7 +36,7 @@ const addInputRow = () => {
   console.log('put')
   inputRows.value.push({
     signal: '',
-    pins: ['']
+    pins: [['']]
   });
 };
 
@@ -52,8 +46,8 @@ const removeInputRow = (rowIndex: number) => {
 
 const addInputChain = (rowIndex: number) => {
   // 只在添加的项不为 null 或空字符串时才添加
-  if (inputRows.value[rowIndex].pins[inputRows.value[rowIndex].pins.length - 1] !== '') {
-    inputRows.value[rowIndex].pins.push('');
+  if (inputRows.value[rowIndex].pins.at(-1)?.[0] !== '') {
+    inputRows.value[rowIndex].pins.push(['']);
   }
 };
 
@@ -64,7 +58,7 @@ const removeInputChain = (rowIndex: number) => {
 const addOutputRow = () => {
   outputRows.value.push({
     signal: '',
-    pins: ['']
+    pins: [['']]
   });
 };
 
@@ -74,8 +68,8 @@ const removeOutputRow = (rowIndex: number) => {
 
 const addOutputChain = (rowIndex: number) => {
   // 只在添加的项不为 null 或空字符串时才添加
-  if (outputRows.value[rowIndex].pins[outputRows.value[rowIndex].pins.length - 1] !== '') {
-    outputRows.value[rowIndex].pins.push('');
+  if (outputRows.value[rowIndex].pins.at(-1)?.[0] !== '') {
+    outputRows.value[rowIndex].pins.push(['']);
   }
 };
 
@@ -167,6 +161,216 @@ const updateDisplay = (d: Record<string, any>) => {
     outputData.value  = Array(6).fill('--------')
 }
 
+function getBindData() {
+  return {
+    CLK: clk.value,
+    inputRows: inputRows.value.map(row => ({
+      signal: row.signal,
+      pins: row.pins
+        // 只保留那些子数组第一个元素不为空的
+        .filter(path => path.length > 0 && path[0] !== '')
+        // 把每条完整路径收尾的值拿出来
+        .map(path => path[path.length - 1])
+    })),
+    outputRows: outputRows.value.map(row => ({
+      signal: row.signal,
+      pins: row.pins
+        .filter(path => path.length > 0 && path[0] !== '')
+        .map(path => path[path.length - 1])
+    }))
+  }
+}
+
+// —— 实现下载的方法 —— 
+const downloadBind = () => {
+  const data = getBindData()
+  const jsonStr = JSON.stringify(data, null, 2)
+  const blob = new Blob([jsonStr], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'bind.json'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  ElMessage.success('已生成并下载 bind.json')
+}
+
+// 1. 工具函数：检查某条完整路径 path 在 options 树里是否合法
+const isValidPath = function (
+  options: { value: string; children?: any[] }[],
+  path: string[]
+): boolean {
+  let level = options
+  for (const segment of path) {
+    const node = level.find(o => o.value === segment)
+    if (!node) return false
+    level = node.children ?? []
+  }
+  return true
+}
+
+// 结构校验函数
+function validateJsonFormat(data: any): { valid: true } | { valid: false; error: string } {
+  if (typeof data !== 'object' || data === null) {
+    return { valid: false, error: '上传的不是合法的 JSON 对象' };
+  }
+  if (typeof data.CLK !== 'string') {
+    return { valid: false, error: '缺少或无效的 "CLK" 字段，应为字符串' };
+  }
+  if (!Array.isArray(data.inputRows)) {
+    return { valid: false, error: '缺少或无效的 "inputRows"，应为数组' };
+  }
+  if (!Array.isArray(data.outputRows)) {
+    return { valid: false, error: '缺少或无效的 "outputRows"，应为数组' };
+  }
+  for (const row of data.inputRows) {
+    if (typeof row.signal !== 'string') {
+      return { valid: false, error: 'inputRows 中每一项都应包含字符串类型的 signal' };
+    }
+    if (!Array.isArray(row.pins)) {
+      return { valid: false, error: 'inputRows 中每一项都应包含数组类型的 pins' };
+    }
+    for (const pin of row.pins) {
+      if (
+        typeof pin !== 'string' &&
+        !(Array.isArray(pin) && pin.every(p => typeof p === 'string'))
+      ) {
+        return { valid: false, error: 'inputRows 的 pins 中，每个元素应为 string 或 string[]' };
+      }
+    }
+  }
+  for (const row of data.outputRows) {
+    if (typeof row.signal !== 'string') {
+      return { valid: false, error: 'outputRows 中每一项都应包含字符串类型的 signal' };
+    }
+    if (!Array.isArray(row.pins)) {
+      return { valid: false, error: 'outputRows 中每一项都应包含数组类型的 pins' };
+    }
+    for (const pin of row.pins) {
+      if (
+        typeof pin !== 'string' &&
+        !(Array.isArray(pin) && pin.every(p => typeof p === 'string'))
+      ) {
+        return { valid: false, error: 'outputRows 的 pins 中，每个元素应为 string 或 string[]' };
+      }
+    }
+  }
+  return { valid: true };
+}
+
+
+// 2. 批量校验 rows 里所有路径
+const validateRows = function (
+  rows: Row[],
+  options: typeof inputOptions,
+  typeName: '输入' | '输出'
+): boolean {
+  for (const { signal, pins } of rows) {
+    for (const path of pins) {
+      // 跳过占位空 ['']
+      if (!path.length || path[0] === '') continue
+
+      if (!isValidPath(options, path)) {
+        ElMessageBox.alert(
+          `${typeName}信号 "${signal}" 中的引脚 "${path.join(' → ')}" 不存在`,
+          '绑定错误',
+          { type: 'error' }
+        )
+        return false
+      }
+    }
+  }
+  return true
+}
+
+// 用来拿到 <input type="file">
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+// 触发文件选择对话框
+const triggerUpload = () => {
+  fileInputRef.value?.click()
+}
+
+/**
+ * 如果 path 是单字符串，尝试在 options 里找到它属于哪个 group
+ * 返回 [group.value, leaf]；找不到就返回原串
+ */
+ function completePath(
+  options: { value: string; children?: { value: string }[] }[],
+  pin: string
+): string[] {
+  for (const group of options) {
+    if (group.children?.some(c => c.value === pin)) {
+      return [group.value, pin];
+    }
+  }
+  // 没找到就给它自己，后面校验会判错
+  return [pin];
+}
+
+// 读取并解析 JSON，然后绑定到状态里
+const handleUploadJson = (e: Event) => {
+  const files = (e.target as HTMLInputElement).files;
+  if (!files?.length) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let raw: any;
+    try {
+      raw = JSON.parse(reader.result as string);
+    } catch {
+      ElMessageBox.alert('JSON 解析失败，请检查文件格式是否正确', '格式错误', { type: 'error' });
+      return;
+    }
+
+    // —— 1. 先做格式校验 —— 
+    const fmt = validateJsonFormat(raw);
+    if (!fmt.valid) {
+      ElMessageBox.alert(fmt.error, '格式错误', { type: 'error' });
+      return;
+    }
+
+    // —— 2. 再做之前的「补全→业务校验→赋值」流程 —— 
+    const data = raw as {
+      CLK: string;
+      inputRows: { signal: string; pins: (string|string[])[] }[];
+      outputRows: { signal: string; pins: (string|string[])[] }[];
+    };
+
+    // 把单值 pin 补成完整路径
+    const newInputRows: Row[] = data.inputRows.map(r => ({
+      signal: r.signal,
+      pins: r.pins.map(pin =>
+        Array.isArray(pin) ? pin : completePath(inputOptions, pin)
+      )
+    }));
+    const newOutputRows: Row[] = data.outputRows.map(r => ({
+      signal: r.signal,
+      pins: r.pins.map(pin =>
+        Array.isArray(pin) ? pin : completePath(outputOptions, pin)
+      )
+    }));
+
+    // 再做一次业务校验（路径合法性）
+    if (
+      !validateRows(newInputRows, inputOptions, '输入') ||
+      !validateRows(newOutputRows, outputOptions, '输出')
+    ) {
+      return;
+    }
+
+    // —— 3. 全部通过，才真正赋值并渲染 —— 
+    clk.value = data.CLK;
+    inputRows.value = newInputRows;
+    outputRows.value = newOutputRows;
+    ElMessage.success('已加载并绑定信号数据');
+  };
+  reader.readAsText(files[0]);
+  // 重置文件选择，允许同一文件重复上传
+  (e.target as HTMLInputElement).value = '';
+};
 
 const buildExp = async() => {
   const bindData = {
@@ -174,22 +378,18 @@ const buildExp = async() => {
     inputRows: inputRows.value.map(row => ({
       signal: row.signal,
       pins: row.pins
-        .filter(pin => pin && pin !== '')      // 先把空的过滤掉
-        .map(path => Array.isArray(path)        // path 是个数组 e.g. ["DP","DP0"]
-          ? path[path.length - 1]               // 取最后一项 "DP0"
-          : path
-      )
+        .filter(path => path.length > 0 && path[0] !== '')
+        .map(path => path[path.length - 1])
     })),
     outputRows: outputRows.value.map(row => ({
       signal: row.signal,
       pins: row.pins
-        .filter(pin => pin && pin !== '')
-        .map(path => Array.isArray(path) ? path[path.length - 1] : path)
+        .filter(path => path.length > 0 && path[0] !== '')
+        .map(path => path[path.length - 1])
     }))
   };
   const formData = new FormData();
   const bindBlob = new Blob([JSON.stringify(bindData)], { type: 'application/json' });
-  console.log(bindData)
 
   if (fileList.value.length > 0 && fileList.value[0].raw) {
     for (let i = 0; i < fileList.value.length; i++) {
@@ -339,6 +539,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <input
+  type="file"
+  accept=".json"
+  ref="fileInputRef"
+  style="display: none"
+  @change="handleUploadJson"
+/>
   <div style="width: 100%; height: 100%" class="backGround">
     <div class="bdPart">
       <div class="VirDeskPart">
@@ -371,6 +578,8 @@ onBeforeUnmount(() => {
 
               </el-input>
               <el-button @click="sendSignalTest" type="warning" plain>传信号</el-button>
+              <el-button type="warning" plain @click="downloadBind">下载信号</el-button>
+              <el-button type="warning" plain @click="triggerUpload">上传信号</el-button>
             </div>
           </div>
           <div class="bind">

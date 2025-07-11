@@ -11,9 +11,22 @@ const props = defineProps({
 });
 
 // 当父组件传来的 ledData 为空时，用一个默认的 20 个 0 替代
-const computedLedData = computed(() => {
-  return props.ledData.length > 0 ? props.ledData : new Array(20).fill(0);
-});
+const computedLedData = computed(() =>
+  props.ledData.length > 0
+    ? props.ledData
+    : new Array(20).fill(0)
+);
+
+// 先倒序，再把「原始 index」打包进来
+const reversedLed = computed(() =>
+  computedLedData.value
+    .slice()                      // 复制一份
+    .reverse()                    // 倒序
+    .map((bit, idx) => ({
+      bit,
+      originalIndex: computedLedData.value.length - 1 - idx
+    }))
+);
 </script>
 
 <template>
@@ -22,15 +35,15 @@ const computedLedData = computed(() => {
       <div class="wrap">
         <div
           class="smallLed"
-          v-for="(bit, index) in computedLedData"
-          :key="index"
+          v-for="(item, i) in reversedLed"
+          :key="i"
         >
           <component
-            :is="bit ? LightOn : LightOff"
+            :is="item.bit ? LightOn : LightOff"
             style="width: 90%; height: auto; transform: rotate(90deg);transform-origin: center;"
           ></component>
           <span>
-            L{{ String(index).padStart(2, '0') }}
+            L{{ String(item.originalIndex).padStart(2, '0') }}
           </span>
         </div>
       </div>
