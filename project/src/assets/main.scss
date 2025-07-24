@@ -35,3 +35,14 @@ body {
   transform: translateX(30px);
   opacity: 0;
 }
+
+.el-overlay-message-box .el-message-box.wide-error-box {
+  --el-messagebox-width: 700px;
+  width: var(--el-messagebox-width) !important;
+  max-width: none !important;      /* 不再受 420px 限制 */
+  /* 关键：保持 inline-block（默认就是），不要写 display:block */
+}
+.el-overlay-message-box .el-message-box.wide-error-box .el-message-box__message {
+  white-space: pre-wrap;            /* 保留后端的 \n 换行 */
+  word-break: break-word;
+}

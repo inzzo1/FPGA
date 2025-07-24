@@ -6,6 +6,21 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
 
+function handlePageUnload() {
+  const url = '/api/stopExperiment'                 // 后端停止实验的接口
+  const payload = JSON.stringify({ /* 可根据后端要求带上实验 ID */ })
+  // sendBeacon 在页面卸载阶段也能把请求丢给浏览器后台发送
+  navigator.sendBeacon(url, payload)
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', handlePageUnload)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handlePageUnload)
+})
+
 const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
 const outputData  = ref<string[]>(['--------','--------','--------','--------','--------','--------'])
 const ledData     = ref<number[]>(Array(20).fill(0))
@@ -38,7 +53,7 @@ const addInputRow = () => {
     signal: '',
     pins: [['']]
   });
-};
+ };
 
 const removeInputRow = (rowIndex: number) => {
   inputRows.value.splice(rowIndex, 1); // 使用 splice 删除指定索引的行
@@ -121,9 +136,7 @@ function handleChange(_file: UploadUserFile, uploadFiles: UploadUserFile[]) {
         `已成功添加 ${raws.length} 个 .v 文件`,
         '上传成功',
         { confirmButtonText: '确定' }
-      ).then(() => {
-        uploadDisabled.value = true;
-      });
+      );
     }
 
     // 清掉定时器引用，下次才能重建
@@ -372,7 +385,16 @@ const handleUploadJson = (e: Event) => {
   (e.target as HTMLInputElement).value = '';
 };
 
+
 const buildExp = async() => {
+  // ElMessageBox.alert(
+  //   errMsg,
+  //     '错误',
+  //     { 
+  //       customClass: 'wide-error-box',
+  //       type: 'error' 
+  //     }
+  //   );
   const bindData = {
     CLK: clk.value,
     inputRows: inputRows.value.map(row => ({
@@ -415,6 +437,7 @@ const buildExp = async() => {
       // === 构建成功 ===
       isBuild.value = true;                             // ✅ 允许点击“开始实验”
       ElMessage.success('板卡构建成功！');
+      uploadDisabled.value = true;
     } else {
       // === 后端返回失败（HTTP 200）===
       throw new Error(data.msg || '板卡构建失败');
@@ -425,7 +448,10 @@ const buildExp = async() => {
     ElMessageBox.alert(
       err.msg || '板卡构建失败，请检查网络或服务器',
       '错误',
-      { type: 'error' }
+      { 
+        customClass: 'wide-error-box',
+        type: 'error' 
+      }
     );
   } finally {
     isBuilding.value = false             // 无论成功失败，都恢复按钮可点
