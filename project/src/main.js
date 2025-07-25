@@ -9,6 +9,8 @@ import App from './App.vue'
 import { useUserStore } from '@/stores/modules/users'
 import router from './router'
 import '@/assets/fonts/font.css' 
+import { installAutoStop } from '@/utils/autoStop'
+
 
 const app = createApp(App)
 app.use(pinia)
@@ -24,5 +26,7 @@ if (import.meta.env.MODE === 'development') {
   const userStore = useUserStore()
   userStore.setToken('eyJhbGciOiJIUzI1NiJ9.dev.mock.token')
 }
+
+installAutoStop()
 
 app.mount('#app')

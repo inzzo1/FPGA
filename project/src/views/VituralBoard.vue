@@ -6,21 +6,6 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
 
-function handlePageUnload() {
-  const url = '/api/stopExperiment'                 // 后端停止实验的接口
-  const payload = JSON.stringify({ /* 可根据后端要求带上实验 ID */ })
-  // sendBeacon 在页面卸载阶段也能把请求丢给浏览器后台发送
-  navigator.sendBeacon(url, payload)
-}
-
-onMounted(() => {
-  window.addEventListener('beforeunload', handlePageUnload)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('beforeunload', handlePageUnload)
-})
-
 const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
 const outputData  = ref<string[]>(['--------','--------','--------','--------','--------','--------'])
 const ledData     = ref<number[]>(Array(20).fill(0))
@@ -554,12 +539,6 @@ const sendSignal = async () => {
   }
   // 否则什么都不做，保持上一次的状态
 }
-
-onBeforeUnmount(() => {
-  if (isStart.value || isBuild.value) {
-    endExp();
-  }
-});
 
 
 </script>
