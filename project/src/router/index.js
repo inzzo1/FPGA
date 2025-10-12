@@ -22,8 +22,8 @@ const router = createRouter({
       component: () => import('@/views/login/BoardSelecting.vue'),
     },
     {
-      path: '/VirturalBoard',
-      component: () => import('@/views/VituralBoard.vue'),
+      path: '/VirtualBoard',
+      component: () => import('@/views/VirtualBoard.vue'),
     },
     {
       path: '/Board-selectingnew',

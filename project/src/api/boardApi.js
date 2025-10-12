@@ -2,25 +2,25 @@ import request from '@/utils/request'
 
 //get
 export const getLight = () => {
-    return request.get('/fpga/cb/getLightString')
+    return request.get('/api/fpga/cb/getLightString')
 }
 
 export const getNixieTube = () => {
-    return request.get('/fpga/cb/getNixieTubeString')
+    return request.get('/api/fpga/cb/getNixieTubeString')
 }
 
 export const getProcessedBtn = () => {
-    return request.get('/fpga/cb/getProcessedBtnStr')
+    return request.get('/api/fpga/cb/getProcessedBtnStr')
 }
 
 export const getRecordedStatus = (cbIp) => {
     const params = cbIp ? {cbIp} : {}
-    return request.get('/fpga/cb/getRecordedStatus?cbIp', {params})
+    return request.get('/api/fpga/cb/getRecordedStatus?cbIp', {params})
 }
 
 export const getSingleBoard = (id) => {
     const params = id ? {id} : {}
-    return request.get('/fpga/cb/get', {params})
+    return request.get('/api/fpga/cb/get', {params})
 }
 
 export const listActiveBoard = (current, size) => {
@@ -32,7 +32,7 @@ export const listActiveBoard = (current, size) => {
         params.size = size
     }
     
-    return request.get('/fpga/cb/listPage', {params})
+    return request.get('/api/fpga/cb/listPage', {params})
 }
 
 export const getToken = (username, userDepartmentName) => {
@@ -44,27 +44,27 @@ export const getToken = (username, userDepartmentName) => {
         params.userDepartmentName = userDepartmentName
     }
 
-    return request.get('/fpga/token/generateToken', {params})
+    return request.get('/api/fpga/token/generateToken', {params})
 }
 
 //post
 
 //???????
 export const checkToken = () => {
-    return request.post('/fpga/token/checkToken')
+    return request.post('/api/fpga/token/checkToken')
 }
 
 //?????
 export const reload = () => {
-    return request.post('/fpga/token/reload')
+    return request.post('/api/fpga/token/reload')
 }
 
 export const inline = () => {
-    return request.post('/fpga/waiting/inLine')
+    return request.post('/api/fpga/waiting/inLine')
 }
 
 export const checkAvailability = () => {
-    return request.post('/fpga/waiting/checkAvailability')
+    return request.post('/api/fpga/waiting/checkAvailability')
 }
 
 
@@ -72,15 +72,15 @@ export const uploadBit = (file) => {
     const formData = new FormData()
     formData.append('file', file)
 
-    return request.post('/fpga/file/uploadBit',formData)
+    return request.post('/api/fpga/file/uploadBit',formData)
 }
 
 export const reloadBitFile = () => {
-    return request.post('/fpga/file/reloadBitFile')
+    return request.post('/api/fpga/file/reloadBitFile')
 }
 
 export const finish = () => {
-    return request.post('/fpga/cb/finish')
+    return request.post('/api/fpga/cb/finish')
 }
 
 export const sendButtonString = (switchButton,tapButton) => {
@@ -92,7 +92,7 @@ export const sendButtonString = (switchButton,tapButton) => {
         params.tapButton = tapButton
     }
 
-    return request.post('/fpga/cb/sendButtonString',{},{params})
+    return request.post('/api/fpga/cb/sendButtonString',{},{params})
 }
 
 export const loadHistory = (tag) => {
@@ -101,21 +101,21 @@ export const loadHistory = (tag) => {
         params.tag = tag
     }
 
-    return request.post('/fpga/cb/loadHistory',{},{params})
+    return request.post('/api/fpga/cb/loadHistory',{},{params})
 }
 
 export const buildExperiment = (formData) => {
-    return request.post('/vb/build',formData)
+    return request.post('/api/vb/build',formData)
 }
 
 export const startExperiment = () => {
-    return request.post('/vb/start')
+    return request.post('/api/vb/start')
 }
 
 export const stopExperiment = () => {
-    return request.post(`/vb/finish`)
+    return request.post(`/api/vb/finish`)
 }
 
 export const sendExpSignal = (payload) => {
-    return request.post(`/vb/signal`,payload)
+    return request.post(`/api/vb/signal`,payload)
 }
