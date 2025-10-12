@@ -107,11 +107,11 @@
                     <div class="inputInnerBox">
                         <span>0x</span>
                         <input
-                        v-model="inputForm.input1"
+                        v-model="inputForm.input2"
                         @input="formatInput(2)"
-                        @focus="hidePlaceholder(1)"
-                        @blur="showPlaceholder(1)"
-                        :placeholder="placeholders.input1"
+                        @focus="hidePlaceholder(2)"
+                        @blur="showPlaceholder(2)"
+                        :placeholder="placeholders.input2"
                         type="text"
                         maxlength="14"
                         />
@@ -124,11 +124,11 @@
                     <div class="inputInnerBox">
                         <span>0x</span>
                         <input
-                        v-model="inputForm.input2"
-                        @input="formatInput(2)"
-                        @focus="hidePlaceholder(2)"
-                        @blur="showPlaceholder(2)"
-                        :placeholder="placeholders.input2"
+                        v-model="inputForm.input1"
+                        @input="formatInput(1)"
+                        @focus="hidePlaceholder(1)"
+                        @blur="showPlaceholder(1)"
+                        :placeholder="placeholders.input1"
                         type="text"
                         maxlength="14"
                         />
