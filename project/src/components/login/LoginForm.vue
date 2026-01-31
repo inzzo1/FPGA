@@ -62,18 +62,22 @@ const setCaptchaImage = (blob) => {
 const fetchCaptcha = async () => {
   try {
     const resp = await generateVerificationCodeImageService({
-      width: 200,
+      width: 100,
       height: 50,
       thickness: 4,
-      numberLength: 4,
+      numberLength: 2,
     })
 
     const contentType = resp.headers?.['content-type'] || ''
     const key =
+      resp.headers?.['uuid'] ||
       resp.headers?.['verification-code-key'] ||
       resp.headers?.['verificationcodekey'] ||
+      resp.headers?.['verificationcode'] ||
+      resp.headers?.['verification-code'] ||
       resp.headers?.['captcha-key'] ||
-      resp.headers?.['x-verification-code-key']
+      resp.headers?.['x-verification-code-key'] ||
+      resp.headers?.['x-verification-code']
 
     if (contentType.includes('application/json')) {
       const text = await resp.data.text()
