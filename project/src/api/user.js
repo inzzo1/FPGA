@@ -1,4 +1,5 @@
-import request from '@/utils/request'
+import axios from 'axios'
+import request, { baseURL } from '@/utils/request'
 
 // 获取用户基本信息
 export const userGetInfoService = id =>
@@ -16,6 +17,12 @@ export const userLogoutService = params =>
 // 生成验证码接口（AuthController）
 export const generateVerificationCodeService = data =>
   request.post('/auth/generate-verification-code', data)
+
+// 生成验证码图片（HttpServletResponse 直接返回图片）
+export const generateVerificationCodeImageService = data =>
+  axios.post(`${baseURL}/auth/generate-verification-code`, data || {}, {
+    responseType: 'blob',
+  })
 
 // 生成 token（VbTokenController）
 export const generateTokenService = params =>

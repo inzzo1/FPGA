@@ -1,8 +1,8 @@
 ######LoginForm.vue########
 <script setup>
-import { userLoginService } from '@/api/user.js'
+import { userLoginService, generateVerificationCodeImageService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useUserStore } from '@/stores/modules/users'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -29,6 +29,7 @@ const formModel = ref({
   password: '',
   captcha: '',
   role: 'guest',
+  verificationCodeKey: '',
 })
 const rules = {
   departmentName: [
@@ -46,7 +47,62 @@ const rules = {
       trigger: 'blur',
     },
   ],
+  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
 }
+
+const captchaImg = ref('')
+let captchaUrl = ''
+
+const setCaptchaImage = (blob) => {
+  if (captchaUrl) URL.revokeObjectURL(captchaUrl)
+  captchaUrl = URL.createObjectURL(blob)
+  captchaImg.value = captchaUrl
+}
+
+const fetchCaptcha = async () => {
+  try {
+    const resp = await generateVerificationCodeImageService({
+      width: 200,
+      height: 50,
+      thickness: 4,
+      numberLength: 4,
+    })
+
+    const contentType = resp.headers?.['content-type'] || ''
+    const key =
+      resp.headers?.['verification-code-key'] ||
+      resp.headers?.['verificationcodekey'] ||
+      resp.headers?.['captcha-key'] ||
+      resp.headers?.['x-verification-code-key']
+
+    if (contentType.includes('application/json')) {
+      const text = await resp.data.text()
+      const json = JSON.parse(text)
+      if (json?.result?.verificationCodeKey) {
+        formModel.value.verificationCodeKey = json.result.verificationCodeKey
+      }
+      if (json?.result?.imageBase64) {
+        captchaImg.value = `data:image/png;base64,${json.result.imageBase64}`
+      }
+      return
+    }
+
+    if (key) formModel.value.verificationCodeKey = key
+    setCaptchaImage(resp.data)
+  } catch {
+    ElMessage.error('验证码获取失败，请点击重试')
+  }
+}
+
+const refreshCaptcha = () => {
+  formModel.value.captcha = ''
+  fetchCaptcha()
+}
+
+onMounted(fetchCaptcha)
+onBeforeUnmount(() => {
+  if (captchaUrl) URL.revokeObjectURL(captchaUrl)
+})
 
 //登录操作
 const login = async () => {
@@ -56,6 +112,8 @@ const login = async () => {
     const loginResp = await userLoginService({
       username: formModel.value.username,
       password: formModel.value.password,
+      verificationCodeKey: formModel.value.verificationCodeKey,
+      verificationCodeValue: formModel.value.captcha,
     })
     const authToken =
       loginResp.data?.msg ||
@@ -83,6 +141,7 @@ const login = async () => {
     router.push(redirect)
   } catch (err) {
     ElMessage.error(err?.message || '登录失败，请重试')
+    refreshCaptcha()
   }
 }
 </script>
@@ -128,6 +187,19 @@ const login = async () => {
         type="password"
         placeholder="请输入密码"
       ></el-input>
+    </el-form-item>
+
+    <el-form-item prop="captcha" label="验证码">
+      <div class="captcha-row">
+        <el-input
+          v-model="formModel.captcha"
+          placeholder="请输入验证码"
+        ></el-input>
+        <div class="captcha-image" @click="refreshCaptcha">
+          <img v-if="captchaImg" :src="captchaImg" alt="验证码" />
+          <span v-else>加载中</span>
+        </div>
+      </div>
     </el-form-item>
 
     <el-form-item prop="role" label="角色">
@@ -224,6 +296,32 @@ const login = async () => {
       flex-direction: column;
       gap: 8px;
     }
+  }
+}
+
+.captcha-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.captcha-image {
+  width: 120px;
+  height: 40px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 }
 </style>
