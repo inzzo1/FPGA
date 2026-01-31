@@ -4,14 +4,13 @@ import { userLoginService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/modules/users'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 const form = ref()
-const Schooloptions = ref([])
-
 const userStore = useUserStore()
 const router = useRouter()
+const route = useRoute()
 
 // // 等后端数据------渲染Schooloptions的学校列表，渲染完成后页面显示--暂时会显示服务异常
 // import { onMounted } from 'vue'
@@ -25,13 +24,16 @@ const router = useRouter()
 // })
 
 const formModel = ref({
-  school: '',
+  departmentName: '',
   username: '',
   password: '',
   captcha: '',
   role: 'guest',
 })
 const rules = {
+  departmentName: [
+    { required: true, message: '请输入学院/部门名称', trigger: 'blur' },
+  ],
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 2, max: 20, message: '用户名必须是 2-20位 的字符', trigger: 'blur' },
@@ -49,29 +51,38 @@ const rules = {
 //登录操作
 const login = async () => {
   await form.value.validate()
-  //用testID跳转
-  if (
-    formModel.value.username === 'testStudent' &&
-    formModel.value.password === 'testStudent1234'
-  ) {
-    userStore.setToken('mockToken')
-    userStore.setRole(formModel.value.role)
-    ElMessage.success('登录成功')
-    router.push('/Board-selecting')
-    return
-  }
 
-  //正经跳转
-  const res = await userLoginService(formModel.value)
-  if (res.data.code === 0) {
-    userStore.setToken(res.data.token) // 保存 token
+  try {
+    const loginResp = await userLoginService({
+      username: formModel.value.username,
+      password: formModel.value.password,
+    })
+    const authToken =
+      loginResp.data?.msg ||
+      loginResp.data?.result?.token ||
+      loginResp.data?.result?.tokenString ||
+      loginResp.data?.token
+
+    if (!authToken || typeof authToken !== 'string') {
+      throw new Error('登录 token 获取失败')
+    }
+
+    userStore.setToken(authToken)
     userStore.setRole(formModel.value.role)
-    userStore.recordLogin() // 记录登录时间
+    userStore.setProfile({
+      username: formModel.value.username,
+      departmentName: formModel.value.departmentName,
+    })
+    userStore.recordLogin()
 
     ElMessage.success('登录成功')
-    router.push('/Board-selecting')
-  } else {
-    ElMessage.error(res.data.message || '登录失败，请重试')
+    const redirect =
+      typeof route.query.redirect === 'string'
+        ? route.query.redirect
+        : '/Board-selecting'
+    router.push(redirect)
+  } catch (err) {
+    ElMessage.error(err?.message || '登录失败，请重试')
   }
 }
 </script>
@@ -95,20 +106,11 @@ const login = async () => {
       </div> -->
     </el-form-item>
 
-    <el-form-item prop="school" label="学校">
-      <el-select
-        v-model="formModel.school"
-        placeholder="请选择学校"
-        size="large"
-        class="full-width"
-      >
-        <el-option
-          v-for="item in Schooloptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
+    <el-form-item prop="departmentName" label="学院/部门">
+      <el-input
+        v-model="formModel.departmentName"
+        placeholder="请输入学院/部门名称"
+      ></el-input>
     </el-form-item>
 
     <el-form-item prop="username" label="学工号">

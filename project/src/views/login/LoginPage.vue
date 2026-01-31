@@ -23,31 +23,24 @@ if (router.currentRoute.value.path === '/register') {
   activeTab.value = 'login'
 }
 
-const setTrue = true
 </script>
 
 <template>
-  <el-row class="login-page">
-    <el-dialog
-      v-model="setTrue"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-    >
-      <div class="dialog-content">
-        <div class="left-side">
-          <img src="@/assets/pictures/LoginImage.png" />
-        </div>
-        <div class="right-side">
-          <el-tabs v-model="activeTab">
-            <el-tab-pane label="登录" name="login"></el-tab-pane>
-            <el-tab-pane label="注册" name="register"></el-tab-pane>
-          </el-tabs>
-          <LoginForm v-if="activeTab === 'login'" />
-          <RegisterForm v-else-if="activeTab === 'register'" />
-        </div>
+  <div class="login-page">
+    <div class="dialog-content">
+      <div class="left-side">
+        <img src="@/assets/pictures/LoginImage.png" />
       </div>
-    </el-dialog>
-  </el-row>
+      <div class="right-side">
+        <el-tabs v-model="activeTab">
+          <el-tab-pane label="登录" name="login"></el-tab-pane>
+          <el-tab-pane label="注册" name="register"></el-tab-pane>
+        </el-tabs>
+        <LoginForm v-if="activeTab === 'login'" />
+        <RegisterForm v-else-if="activeTab === 'register'" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -67,22 +60,17 @@ const setTrue = true
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 24px;
 }
 
-:deep(.el-dialog) {
+.dialog-content {
   width: 90% !important;
   max-width: 800px;
   height: 80vh !important;
   min-height: 500px;
   border-radius: 12px;
-}
-
-:deep(.el-dialog__body) {
-  padding: 0px !important;
-  height: calc(100% - 40px);
-}
-
-.dialog-content {
+  background: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   height: 100%;
   display: flex;
   gap: 20px;

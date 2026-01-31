@@ -1,38 +1,44 @@
 import request from '@/utils/request'
 
-// // 注册接口
-// export const userRegisterService = ({ username, password, repassword }) =>
-//   request.post('/account/user/create', { username, password, repassword })
-
-// // 登录接口
-// export const userLoginService = ({ username, password }) =>
-//   request.post('/fpga/token/generateToken', { username, password })
-
 // 获取用户基本信息
 export const userGetInfoService = id =>
   request.get('/account/role/get', {
     params: { id },
   })
 
-// 登录接口（接口文档----妹写？？）
-export const userLoginService = data => {
-  return request.post('/account/user/login', data)
-}
+// 登录接口（AuthController）
+export const userLoginService = data => request.post('/auth/login', data)
 
-// 注册接口（接口文档-------创建用户）
-export const userRegisterService = data => {
-  return request.post('/account/user/create', {
+// 退出登录接口（AuthController）
+export const userLogoutService = params =>
+  request.get('/auth/logout', { params })
+
+// 生成验证码接口（AuthController）
+export const generateVerificationCodeService = data =>
+  request.post('/auth/generate-verification-code', data)
+
+// 生成 token（VbTokenController）
+export const generateTokenService = params =>
+  request.get('/token/generateToken', { params })
+
+// 校验 token（VbTokenController）
+export const checkTokenService = () => request.post('/token/checkToken')
+
+// 刷新 token（VbTokenController）
+export const reloadTokenService = () => request.post('/token/reload')
+
+// 注册接口（创建用户）
+export const userRegisterService = data =>
+  request.post('/account/user/create', {
     username: data.username,
     password: data.password,
     userRoleId: getRoleId(data.role), // 需要角色转换逻辑
     userDepartmentId: data.school, // 学校ID
   })
-}
 
 // 获取学校列表
-export const getSchoolsService = () => {
-  return request.get('/account/department/listPage?current=1&size=100')
-}
+export const getSchoolsService = () =>
+  request.get('/account/department/listPage?current=1&size=100')
 
 // 角色映射逻辑（接口文档------妹写？？）
 const getRoleId = role => {

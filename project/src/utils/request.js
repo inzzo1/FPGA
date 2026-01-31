@@ -16,7 +16,20 @@ instance.interceptors.request.use(
   config => {
     // TODO 2. 携带token
     const useStore = useUserStore()
-    if (useStore.token) {
+    const url = config.url || ''
+    const isBoardApi =
+      url.startsWith('/api/vb') ||
+      url.startsWith('/api/fpga') ||
+      url.startsWith('/vb')
+    const isBoardTokenCheck =
+      url.startsWith('/token/checkToken') || url.startsWith('/token/reload')
+    const isBoardTokenGenerate = url.startsWith('/token/generateToken')
+
+    if ((isBoardApi || isBoardTokenCheck) && useStore.boardToken) {
+      config.headers.token = useStore.boardToken
+    } else if (!isBoardTokenGenerate && useStore.token) {
+      config.headers.token = useStore.token
+    } else if (isBoardTokenGenerate && useStore.token) {
       config.headers.token = useStore.token
     }
     return config

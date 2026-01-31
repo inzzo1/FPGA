@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// import { useUserStore } from '@/stores/modules/user'
+import { useUserStore } from '@/stores/modules/users'
 
 // createRouter 创建路由实例
 // 配置 history 模式
@@ -12,6 +12,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: '/', redirect: '/VirtualBoard' },
     { path: '/login', component: () => import('@/views/login/LoginPage.vue') },
     {
       path: '/register',
@@ -49,10 +50,15 @@ const router = createRouter({
 // 3. 具体路径 或 路径对象  拦截到对应的地址
 //    '/login'   { name: 'login' }
 
-// router.beforeEach(to => {
-//   // 如果没有token, 且访问的是非登录页，拦截到登录，其他情况正常放行
-//   const useStore = useUserStore()
-//   if (!useStore.token && to.path !== '/login') return '/login'
-// })
+router.beforeEach(async to => {
+  const useStore = useUserStore()
+  const publicPaths = ['/login', '/register', '/VirtualBoard']
+  if (publicPaths.includes(to.path)) return true
+
+  if (!useStore.token) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+  return true
+})
 
 export default router

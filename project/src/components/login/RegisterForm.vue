@@ -1,8 +1,8 @@
 ######RegisterForm.vue########
 <script setup>
-import { userRegisterService } from '@/api/user.js'
+import { userRegisterService, getSchoolsService } from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/modules/users'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -13,23 +13,26 @@ const form = ref()
 const userStore = useUserStore()
 const router = useRouter()
 
-// // 等后端数据------渲染Schooloptions的学校列表，渲染完成后页面显示
-// import { onMounted } from 'vue'
-// import { getSchoolsService } from '@/api/user.js'
-// onMounted(async () => {
-//   const res = await getSchoolsService()
-//   Schooloptions.value = res.data.result.object.map(item => ({
-//     label: item.name,
-//     value: item.id,
-//   }))
-// })
+// 等后端数据------渲染Schooloptions的学校列表
+onMounted(async () => {
+  try {
+    const res = await getSchoolsService()
+    const list = res.data?.result?.object || res.data?.result?.records || []
+    Schooloptions.value = list.map(item => ({
+      label: item.name,
+      value: item.id,
+    }))
+  } catch {
+    ElMessage.error('学校列表获取失败，请稍后重试')
+  }
+})
 
 // 注册表单数据
 const registerForm = ref({
   school: '',
   username: '',
   password: '',
-  confirmPassword: '',
+  repassword: '',
   captcha: '',
   role: 'student', // 添加角色字段，默认为学生
 })
@@ -46,6 +49,7 @@ const registerForm = ref({
 //        - callback() 校验成功
 //        - callback(new Error(错误信息)) 校验失败
 const rules = {
+  school: [{ required: true, message: '请选择学校', trigger: 'change' }],
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 2, max: 20, message: '用户名必须是 2-20位 的字符', trigger: 'blur' },
@@ -93,11 +97,9 @@ const regButton = async () => {
   const res = await userRegisterService(registerForm.value)
 
   if (res.data.code === 0) {
-    userStore.setToken(res.data.token) // 保存 token
     userStore.setRole(registerForm.value.role)
-
-    ElMessage.success('注册成功，请选择板子')
-    router.push('/Board-selecting')
+    ElMessage.success('注册成功，请登录')
+    router.push('/login')
   } else {
     ElMessage.error(res.data.message || '注册失败，请重试')
   }

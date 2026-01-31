@@ -1,12 +1,9 @@
 <script setup>
-// import { ref } from 'vue';
+import { computed } from 'vue'
+import { useUserStore } from '@/stores/modules/users'
 
-// const metaInfo = ref({
-//   title: this.$store.state.settings.dynamicTitle && this.$store.state.settings.title,
-//       titleTemplate: title => {
-//         return title ? `${title} - ${process.env.VUE_APP_TITLE}` : process.env.VUE_APP_TITLE
-//       }
-// })
+const userStore = useUserStore()
+const displayName = computed(() => userStore.username || '未登录')
 </script>
 
 <template>
@@ -19,14 +16,14 @@
           class="logo-img"
         />
       </div>
-      <el-menu mode="horizontal" class="menu">
-        <el-menu-item index="1">首页</el-menu-item>
-        <el-menu-item index="2">实验</el-menu-item>
+      <el-menu mode="horizontal" class="menu" router  :default-active="$route.path">
+        <el-menu-item index="/VirtualBoard">首页</el-menu-item>
+        <el-menu-item index="/teacher-dashboard">实验概览</el-menu-item>
         <el-menu-item index="3">团队</el-menu-item>
         <el-menu-item index="4">数据</el-menu-item>
       </el-menu>
       <div class="user-info">
-        欢迎您, <span class="username">testStudent</span>
+        欢迎您, <span class="username">{{ displayName }}</span>
       </div>
     </el-header>
     <router-view style="height: 93%;"/>

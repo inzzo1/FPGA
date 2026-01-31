@@ -2,9 +2,11 @@
 import VitualDesk from '@/components/virtualDesk/index.vue';
 import options from '@/stores/options.json'
 import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
+import { generateTokenService } from '@/api/user'
+import { useUserStore } from '@/stores/modules/users'
 
 const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
 const outputData  = ref<string[]>(['--------','--------','--------','--------','--------','--------'])
@@ -20,6 +22,7 @@ const deskRef = ref<InstanceType<typeof VitualDesk>>()
 const clk = ref('')
 const isBuilding = ref(false)
 const isStarting = ref(false)
+const userStore = useUserStore()
 
 const inputRows = ref<Row[]>([
   { signal: '', pins: [['']] }
@@ -131,6 +134,34 @@ function handleChange(_file: UploadUserFile, uploadFiles: UploadUserFile[]) {
 
 const isStart = ref(false)
 const isBuild = ref(false)
+
+const ensureBoardToken = async () => {
+  if (userStore.boardToken) return
+  if (!userStore.username || !userStore.departmentName) {
+    ElMessage.error('缺少用户名或学院/部门信息，无法生成板卡 token')
+    return
+  }
+  try {
+    const tokenResp = await generateTokenService({
+      username: userStore.username,
+      userDepartmentName: userStore.departmentName,
+    })
+    const token =
+      tokenResp.data?.msg ||
+      tokenResp.data?.result?.token ||
+      tokenResp.data?.result?.tokenString
+    if (!token || typeof token !== 'string') {
+      throw new Error('板卡 token 生成失败')
+    }
+    userStore.setBoardToken(token)
+  } catch (err) {
+    ElMessage.error(err?.message || '板卡 token 生成失败')
+  }
+}
+
+onMounted(() => {
+  ensureBoardToken()
+})
 
 const updateDisplay = (d: Record<string, any>) => {
    // ① 更新 LED 灯
@@ -309,9 +340,24 @@ const triggerUpload = () => {
 }
 
 // 读取并解析 JSON，然后绑定到状态里
-const handleUploadJson = (e: Event) => {
+const handleUploadJson = async (e: Event) => {
   const files = (e.target as HTMLInputElement).files;
   if (!files?.length) return;
+
+  try {
+    await ElMessageBox.confirm(
+      '上传后的逻辑会替换掉当前绑定逻辑，是否确定？',
+      '确认上传',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+  } catch {
+    (e.target as HTMLInputElement).value = '';
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = () => {
@@ -481,6 +527,8 @@ const endExp = () => {
 }
 
 const clkFlag = ref(0)
+const clkButtonLabel = computed(() => (clkFlag.value === 0 ? '↓' : '↑'))
+const clkTooltip = computed(() => (clkFlag.value === 0 ? '下降沿' : '上升沿'))
 
 const sendSignalTest = async () => {
   clkFlag.value = clkFlag.value === 1 ? 0 : 1;
@@ -582,9 +630,17 @@ const sendSignal = async () => {
               >
 
               </el-input>
-              <el-button @click="sendSignalTest" type="warning" plain>传信号</el-button>
-              <el-button type="warning" plain @click="downloadBind">下载信号</el-button>
-              <el-button type="warning" plain @click="triggerUpload">上传信号</el-button>
+              <el-tooltip :content="clkTooltip" placement="bottom" popper-class="bind-tooltip">
+                <el-button @click="sendSignalTest" type="warning" plain class="clk-action clk-arrow">
+                  {{ clkButtonLabel }}
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="下载当前引脚绑定逻辑" placement="bottom" popper-class="bind-tooltip">
+                <el-button type="warning" plain @click="downloadBind" class="clk-action">下载bind</el-button>
+              </el-tooltip>
+              <el-tooltip content="上传引脚绑定文件" placement="bottom" popper-class="bind-tooltip">
+                <el-button type="warning" plain @click="triggerUpload" class="clk-action">上传bind</el-button>
+              </el-tooltip>
             </div>
           </div>
           <div class="bind">
@@ -729,7 +785,7 @@ const sendSignal = async () => {
         </div>
       </div>
     </div>
-    <span>浙江省网络空间安全实验教学示范中心</span>
+    <span>网络空间安全省级实验教学示范中心</span>
   </div>
 </template>
 
@@ -813,10 +869,20 @@ const sendSignal = async () => {
               width: 40%;
               height: 70%;
             }
-            > .el-button{
+            > .el-button,
+            > .el-tooltip{
               width: 20%;
               height: 80%;
               margin-left: auto;
+            }
+            > .el-tooltip .el-button{
+              width: 100%;
+              height: 100%;
+            }
+            .clk-arrow{
+              width: 10%;
+              min-width: 10%;
+              padding: 0;
             }
           }
         }
@@ -955,13 +1021,20 @@ const sendSignal = async () => {
   }
 
 }
-::v-deep .el-upload {
+:deep(.el-upload) {
   width: 100%;
   height: 100%;
 }
 
-::v-deep .el-button {
+:deep(.el-button) {
   padding: 0;
+}
+
+:global(.bind-tooltip) {
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 4px 8px;
+  max-width: 220px;
 }
 
 :deep(.mini-casc .el-input__inner) {
@@ -970,7 +1043,7 @@ const sendSignal = async () => {
 }
 
 
-::v-deep .clkInput .el-input__wrapper{
+:deep(.clkInput .el-input__wrapper){
   background-color: #FDE6D5 !important;
   color: white !important;
 }
