@@ -18,12 +18,12 @@ instance.interceptors.request.use(
     const useStore = useUserStore()
     const url = config.url || ''
     const isBoardApi =
-      url.startsWith('/api/vb') ||
-      url.startsWith('/api/fpga') ||
-      url.startsWith('/vb')
+      url.startsWith('/vboard') ||
+      url.startsWith('/fpga')
     const isBoardTokenCheck =
-      url.startsWith('/token/checkToken') || url.startsWith('/token/reload')
-    const isBoardTokenGenerate = url.startsWith('/token/generateToken')
+      url.startsWith('/vboard/token/checkToken') ||
+      url.startsWith('/vboard/token/reload')
+    const isBoardTokenGenerate = url.startsWith('/vboard/token/generateToken')
 
     if ((isBoardApi || isBoardTokenCheck) && useStore.boardToken) {
       config.headers.token = useStore.boardToken

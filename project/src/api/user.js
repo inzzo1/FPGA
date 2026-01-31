@@ -26,13 +26,13 @@ export const generateVerificationCodeImageService = data =>
 
 // 生成 token（VbTokenController）
 export const generateTokenService = params =>
-  request.get('/token/generateToken', { params })
+  request.get('/vboard/token/generateToken', { params })
 
 // 校验 token（VbTokenController）
-export const checkTokenService = () => request.post('/token/checkToken')
+export const checkTokenService = () => request.post('/vboard/token/checkToken')
 
 // 刷新 token（VbTokenController）
-export const reloadTokenService = () => request.post('/token/reload')
+export const reloadTokenService = () => request.post('/vboard/token/reload')
 
 // 注册接口（创建用户）
 export const userRegisterService = data =>

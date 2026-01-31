@@ -1,4 +1,4 @@
-const STOP_URL = '/vb/finish';
+const STOP_URL = '/vboard/finish';
 
 // 用一个标记防止重复发送（pagehide / beforeunload / visibilitychange 都可能触发）
 let sent = false;
