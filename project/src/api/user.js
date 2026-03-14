@@ -10,6 +10,9 @@ export const userGetInfoService = id =>
 // 登录接口（AuthController）
 export const userLoginService = data => request.post('/auth/login', data)
 
+// 第三方登录接口（SSO）
+export const thirdLoginService = data => request.post('/sso/auth/third_login', data)
+
 // 退出登录接口（AuthController）
 export const userLogoutService = params =>
   request.get('/auth/logout', { params })
@@ -46,6 +49,10 @@ export const userRegisterService = data =>
 // 获取学校列表
 export const getSchoolsService = () =>
   request.get('/account/department/listPage?current=1&size=100')
+
+// 获取学院/部门列表（登录页下拉框）
+export const getDepartmentListService = (params = { current: 1, size: 100 }) =>
+  request.get('/department/listPage', { params })
 
 // 角色映射逻辑（接口文档------妹写？？）
 const getRoleId = role => {

@@ -1,27 +1,78 @@
 ######LoginPage.vue########
 <script setup>
-import { ref, watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watchEffect, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/modules/users'
+import { thirdLoginService } from '@/api/user'
 import LoginForm from '../../components/login/LoginForm.vue'
 import RegisterForm from '../../components/login/RegisterForm.vue'
 
 const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
 
 // 当前选中的 tab，登录或注册
 const activeTab = ref('login')
+const thirdLoginLoading = ref(false)
+
+const resolveAuthToken = resp =>
+  resp?.data?.result?.tokenValue ||
+  resp?.data?.result?.token ||
+  resp?.data?.token
+
+const handleThirdLogin = async jwtToken => {
+  thirdLoginLoading.value = true
+  try {
+    const resp = await thirdLoginService({ jwtToken })
+    const authToken = resolveAuthToken(resp)
+    if (!authToken || typeof authToken !== 'string') {
+      throw new Error('第三方登录 token 获取失败')
+    }
+
+    userStore.setToken(authToken)
+    userStore.setRole('guest')
+    if (resp?.data?.result?.loginId) {
+      userStore.setProfile({ username: resp.data.result.loginId })
+    }
+    userStore.recordLogin()
+
+    ElMessage.success('第三方登录成功')
+    const redirect =
+      typeof route.query.redirect === 'string'
+        ? route.query.redirect
+        : '/Board-selecting'
+    router.replace(redirect)
+  } catch (err) {
+    ElMessage.error(err?.response?.data?.msg || err?.msg || err?.message || '第三方登录失败')
+  } finally {
+    thirdLoginLoading.value = false
+  }
+}
 
 // 监听 tab 变化，更新路由
 //这里对登录和注册的表单作出两层绑定，一是绑定tab，二是绑定路由
 watchEffect(() => {
-  router.push(`/${activeTab.value}`)
+  const targetPath = `/${activeTab.value}`
+  if (route.path !== targetPath) {
+    router.replace({ path: targetPath, query: route.query })
+  }
 })
 
 // 根据路由来初始化 tab 的选项
-if (router.currentRoute.value.path === '/register') {
+if (route.path === '/register') {
   activeTab.value = 'register'
 } else {
   activeTab.value = 'login'
 }
+
+onMounted(() => {
+  const jwtToken =
+    typeof route.query.jwtToken === 'string' ? route.query.jwtToken.trim() : ''
+  if (!jwtToken) return
+  activeTab.value = 'login'
+  handleThirdLogin(jwtToken)
+})
 
 </script>
 
@@ -32,12 +83,17 @@ if (router.currentRoute.value.path === '/register') {
         <img src="@/assets/pictures/LoginImage.png" />
       </div>
       <div class="right-side">
-        <el-tabs v-model="activeTab">
-          <el-tab-pane label="登录" name="login"></el-tab-pane>
-          <el-tab-pane label="注册" name="register"></el-tab-pane>
-        </el-tabs>
-        <LoginForm v-if="activeTab === 'login'" />
-        <RegisterForm v-else-if="activeTab === 'register'" />
+        <div v-if="thirdLoginLoading" class="third-login-loading">
+          正在进行第三方登录，请稍候...
+        </div>
+        <template v-else>
+          <el-tabs v-model="activeTab">
+            <el-tab-pane label="登录" name="login"></el-tab-pane>
+            <el-tab-pane label="注册" name="register"></el-tab-pane>
+          </el-tabs>
+          <LoginForm v-if="activeTab === 'login'" />
+          <RegisterForm v-else-if="activeTab === 'register'" />
+        </template>
       </div>
     </div>
   </div>
@@ -89,6 +145,15 @@ if (router.currentRoute.value.path === '/register') {
     flex: 1;
     padding: 0 px;
     overflow-y: auto;
+
+    .third-login-loading {
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 16px;
+    }
 
     .el-tabs {
       display: flex;

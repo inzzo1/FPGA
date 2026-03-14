@@ -1,6 +1,10 @@
 ######LoginForm.vue########
 <script setup>
-import { userLoginService, generateVerificationCodeImageService } from '@/api/user.js'
+import {
+  userLoginService,
+  generateVerificationCodeImageService,
+  getDepartmentListService,
+} from '@/api/user.js'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useUserStore } from '@/stores/modules/users'
@@ -8,6 +12,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 const form = ref()
+const departmentOptions = ref([])
+const departmentLoading = ref(false)
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
@@ -24,6 +30,7 @@ const route = useRoute()
 // })
 
 const formModel = ref({
+  departmentId: null,
   departmentName: '',
   username: '',
   password: '',
@@ -32,9 +39,7 @@ const formModel = ref({
   verificationCodeKey: '',
 })
 const rules = {
-  departmentName: [
-    { required: true, message: '请输入学院/部门名称', trigger: 'blur' },
-  ],
+  departmentId: [{ required: true, message: '请选择学院/部门', trigger: 'change' }],
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 2, max: 20, message: '用户名必须是 2-20位 的字符', trigger: 'blur' },
@@ -103,7 +108,41 @@ const refreshCaptcha = () => {
   fetchCaptcha()
 }
 
-onMounted(fetchCaptcha)
+const fetchDepartments = async () => {
+  departmentLoading.value = true
+  try {
+    const resp = await getDepartmentListService({ current: 1, size: 100 })
+    const result = resp.data?.result
+    const list =
+      (Array.isArray(result) && result) ||
+      (Array.isArray(result?.records) && result.records) ||
+      (Array.isArray(result?.object) && result.object) ||
+      (Array.isArray(result?.data) && result.data) ||
+      (Array.isArray(result?.list) && result.list) ||
+      []
+
+    departmentOptions.value = list
+      .map(item => ({
+        label: item?.name || item?.departmentName || item?.label || '',
+        value: item?.id ?? item?.departmentId ?? item?.value,
+      }))
+      .filter(item => item.label && item.value !== undefined && item.value !== null)
+  } catch {
+    ElMessage.error('学院/部门列表获取失败，请稍后重试')
+  } finally {
+    departmentLoading.value = false
+  }
+}
+
+const onDepartmentChange = value => {
+  const selected = departmentOptions.value.find(item => item.value === value)
+  formModel.value.departmentName = selected?.label || ''
+}
+
+onMounted(() => {
+  fetchCaptcha()
+  fetchDepartments()
+})
 onBeforeUnmount(() => {
   if (captchaUrl) URL.revokeObjectURL(captchaUrl)
 })
@@ -116,6 +155,7 @@ const login = async () => {
     const loginResp = await userLoginService({
       username: formModel.value.username,
       password: formModel.value.password,
+      departmentId: formModel.value.departmentId,
       verificationCodeKey: formModel.value.verificationCodeKey,
       verificationCodeValue: formModel.value.captcha,
     })
@@ -133,6 +173,7 @@ const login = async () => {
     userStore.setRole(formModel.value.role)
     userStore.setProfile({
       username: formModel.value.username,
+      departmentId: formModel.value.departmentId,
       departmentName: formModel.value.departmentName,
     })
     userStore.recordLogin()
@@ -169,11 +210,22 @@ const login = async () => {
       </div> -->
     </el-form-item>
 
-    <el-form-item prop="departmentName" label="学院/部门">
-      <el-input
-        v-model="formModel.departmentName"
-        placeholder="请输入学院/部门名称"
-      ></el-input>
+    <el-form-item prop="departmentId" label="学院/部门">
+      <el-select
+        v-model="formModel.departmentId"
+        placeholder="请选择学院/部门"
+        class="full-width"
+        :loading="departmentLoading"
+        filterable
+        @change="onDepartmentChange"
+      >
+        <el-option
+          v-for="item in departmentOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
     </el-form-item>
 
     <el-form-item prop="username" label="学工号">
