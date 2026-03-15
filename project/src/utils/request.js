@@ -55,16 +55,20 @@ instance.interceptors.request.use(
 // 响应拦截器
 instance.interceptors.response.use(
   res => {
+    const silent = !!res.config?.silent
     // TODO 4. 摘取核心响应数据
     if (res.data.code === 0) {
       return res
     }
     // TODO 3. 处理业务失败
     // 处理业务失败, 给错误提示，抛出错误
-    ElMessage.error(res.data.message || res.data.msg || '服务异常')
+    if (!silent) {
+      ElMessage.error(res.data.message || res.data.msg || '服务异常')
+    }
     return Promise.reject(res.data)
   },
   err => {
+    const silent = !!err.config?.silent
     // TODO 5. 处理401错误
     // 错误的特殊情况 => 401 权限不足 或 token 过期 => 拦截到登录
     if (err.response?.status === 401) {
@@ -72,7 +76,9 @@ instance.interceptors.response.use(
     }
 
     // 错误的默认情况 => 只要给提示
-    ElMessage.error(err.response?.data?.message || err.response?.data?.msg || '服务异常')
+    if (!silent) {
+      ElMessage.error(err.response?.data?.message || err.response?.data?.msg || '服务异常')
+    }
     return Promise.reject(err)
   },
 )

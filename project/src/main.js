@@ -8,7 +8,6 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import '@/assets/fonts/font.css' 
-import { installAutoStop } from '@/utils/autoStop'
 
 
 const app = createApp(App)
@@ -18,8 +17,5 @@ app.use(router)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
-
-
-installAutoStop()
 
 app.mount('#app')

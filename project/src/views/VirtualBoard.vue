@@ -5,7 +5,7 @@ import { UploadUserFile, ElMessage, ElMessageBox } from 'element-plus';
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Plus, Minus } from '@element-plus/icons-vue';
 import {buildExperiment, stopExperiment, startExperiment, sendExpSignal} from '@/api/boardApi'
-import { generateTokenService } from '@/api/user'
+import { generateTokenService, checkTokenService, reloadTokenService } from '@/api/user'
 import { useUserStore } from '@/stores/modules/users'
 
 const decimalData = ref<string[]>(['00000000','00000000','00000000','00000000','00000000','00000000'])
@@ -134,37 +134,122 @@ function handleChange(_file: UploadUserFile, uploadFiles: UploadUserFile[]) {
 
 const isStart = ref(false)
 const isBuild = ref(false)
+const TOKEN_RELOAD_INTERVAL_MS = 20 * 1000
+let tokenReloadTimer: number | null = null
+let tokenReloading = false
+let tokenExpiredNotified = false
 
-const ensureBoardToken = async () => {
+const resolveBoardTokenFromResp = (tokenResp: any) => {
+  const headerToken =
+    tokenResp?.headers?.token ||
+    tokenResp?.headers?.['x-token'] ||
+    tokenResp?.headers?.['vboard-token'] ||
+    tokenResp?.headers?.['board-token']
+  return (
+    tokenResp?.data?.result?.tokenValue ||
+    tokenResp?.data?.result?.token ||
+    tokenResp?.data?.result?.tokenString ||
+    tokenResp?.data?.tokenValue ||
+    tokenResp?.data?.token ||
+    headerToken ||
+    tokenResp?.data?.msg
+  )
+}
+
+const ensureBoardToken = async ({ silent = false } = {}) => {
   if (userStore.boardToken) return true
   try {
     const tokenResp = await generateTokenService()
-    const headerToken =
-      tokenResp.headers?.token ||
-      tokenResp.headers?.['x-token'] ||
-      tokenResp.headers?.['vboard-token'] ||
-      tokenResp.headers?.['board-token']
-    const token =
-      tokenResp.data?.result?.tokenValue ||
-      tokenResp.data?.result?.token ||
-      tokenResp.data?.result?.tokenString ||
-      tokenResp.data?.tokenValue ||
-      tokenResp.data?.token ||
-      headerToken ||
-      tokenResp.data?.msg
+    const token = resolveBoardTokenFromResp(tokenResp)
     if (!token || typeof token !== 'string') {
       throw new Error('未获取到有效实验 token')
     }
     userStore.setBoardToken(token)
     return true
   } catch (err: any) {
-    ElMessage.error(err?.msg || err?.message || '板卡 token 生成失败')
+    if (!silent) {
+      ElMessage.error(err?.msg || err?.message || '板卡 token 生成失败')
+    }
     return false
   }
 }
 
-onMounted(() => {
-  ensureBoardToken()
+const markExperimentExpired = (msg?: string) => {
+  userStore.setBoardToken('')
+  isStart.value = false
+  isBuild.value = false
+  uploadDisabled.value = false
+  resetDisplay()
+  if (!tokenExpiredNotified) {
+    ElMessage.warning(msg || '实验 token 已失效，实验资源已释放，请重新构造并开始实验')
+    tokenExpiredNotified = true
+  }
+}
+
+const validateBoardToken = async ({ silent = false } = {}) => {
+  if (!userStore.boardToken) return false
+  try {
+    await checkTokenService({ silent: true })
+    return true
+  } catch (err: any) {
+    if (!silent) {
+      markExperimentExpired(err?.msg || err?.message)
+    }
+    return false
+  }
+}
+
+const stopBoardTokenPolling = () => {
+  if (tokenReloadTimer) {
+    window.clearInterval(tokenReloadTimer)
+    tokenReloadTimer = null
+  }
+}
+
+const startBoardTokenPolling = () => {
+  stopBoardTokenPolling()
+  tokenReloadTimer = window.setInterval(async () => {
+    if (tokenReloading) return
+    tokenReloading = true
+    try {
+      if (!userStore.boardToken) {
+        await ensureBoardToken({ silent: true })
+        return
+      }
+
+      const tokenValid = await validateBoardToken({ silent: true })
+      if (!tokenValid) {
+        markExperimentExpired()
+        await ensureBoardToken({ silent: true })
+        return
+      }
+
+      const reloadResp = await reloadTokenService({ silent: true })
+      const refreshedToken = resolveBoardTokenFromResp(reloadResp)
+      if (refreshedToken && typeof refreshedToken === 'string') {
+        userStore.setBoardToken(refreshedToken)
+      }
+    } catch (err: any) {
+      const isBusinessError = err && typeof err === 'object' && 'code' in err
+      if (isBusinessError) {
+        markExperimentExpired(err?.msg)
+      } else {
+        userStore.setBoardToken('')
+      }
+      await ensureBoardToken({ silent: true })
+    } finally {
+      tokenReloading = false
+    }
+  }, TOKEN_RELOAD_INTERVAL_MS)
+}
+
+onMounted(async () => {
+  await ensureBoardToken()
+  startBoardTokenPolling()
+})
+
+onBeforeUnmount(() => {
+  stopBoardTokenPolling()
 })
 
 const updateDisplay = (d: Record<string, any>) => {
@@ -465,6 +550,7 @@ const buildExp = async() => {
   formData.append('bindFile', bindBlob, 'bind.json');
   const tokenReady = await ensureBoardToken()
   if (!tokenReady) return
+  tokenExpiredNotified = false
   if (isBuilding.value) return            // 已经在构建中，就不重复触发
   isBuilding.value = true
     /* ---------- 4. 调用后端接口 ---------- */
@@ -504,11 +590,14 @@ const startExp = async () => {
   if (isStarting.value) return
   const tokenReady = await ensureBoardToken()
   if (!tokenReady) return
+  const tokenValid = await validateBoardToken()
+  if (!tokenValid) return
   isStarting.value = true
   try {
     const resp = await startExperiment();
     if (resp.data.code !== 0) throw new Error(resp.data.msg || '开始实验失败');
     isStart.value = true;
+    tokenExpiredNotified = false
     ElMessage.success('实验已开始');
 
      // 拿到后端 data，更新界面
@@ -541,6 +630,8 @@ const clkTooltip = computed(() => (clkFlag.value === 0 ? '下降沿' : '上升�
 const sendSignalTest = async () => {
   const tokenReady = await ensureBoardToken()
   if (!tokenReady) return
+  const tokenValid = await validateBoardToken()
+  if (!tokenValid) return
   clkFlag.value = clkFlag.value === 1 ? 0 : 1;
 
   const payload = {
@@ -567,6 +658,8 @@ const sendSignalTest = async () => {
 const sendSignal = async () => {
   const tokenReady = await ensureBoardToken()
   if (!tokenReady) return
+  const tokenValid = await validateBoardToken()
+  if (!tokenValid) return
   const { button, sw, input } = deskRef.value?.getAllStates() || {}
 
   // 你自己的格式化，比如把 input 里每行拼成字符串
