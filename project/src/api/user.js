@@ -32,10 +32,12 @@ export const generateTokenService = () =>
   request.get('/vboard/token/generateToken', { withCredentials: true })
 
 // 校验 token（VbTokenController）
-export const checkTokenService = () => request.post('/vboard/token/checkToken')
+export const checkTokenService = () =>
+  request.post('/vboard/token/checkToken', {}, { withCredentials: true })
 
 // 刷新 token（VbTokenController）
-export const reloadTokenService = () => request.post('/vboard/token/reload')
+export const reloadTokenService = () =>
+  request.post('/vboard/token/reload', {}, { withCredentials: true })
 
 // 注册接口（创建用户）
 export const userRegisterService = data =>

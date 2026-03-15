@@ -136,22 +136,30 @@ const isStart = ref(false)
 const isBuild = ref(false)
 
 const ensureBoardToken = async () => {
-  if (userStore.boardToken) return
+  if (userStore.boardToken) return true
   try {
     const tokenResp = await generateTokenService()
+    const headerToken =
+      tokenResp.headers?.token ||
+      tokenResp.headers?.['x-token'] ||
+      tokenResp.headers?.['vboard-token'] ||
+      tokenResp.headers?.['board-token']
     const token =
       tokenResp.data?.result?.tokenValue ||
       tokenResp.data?.result?.token ||
       tokenResp.data?.result?.tokenString ||
       tokenResp.data?.tokenValue ||
       tokenResp.data?.token ||
+      headerToken ||
       tokenResp.data?.msg
     if (!token || typeof token !== 'string') {
-      throw new Error('板卡 token 生成失败')
+      throw new Error('未获取到有效实验 token')
     }
     userStore.setBoardToken(token)
-  } catch (err) {
-    ElMessage.error(err?.message || '板卡 token 生成失败')
+    return true
+  } catch (err: any) {
+    ElMessage.error(err?.msg || err?.message || '板卡 token 生成失败')
+    return false
   }
 }
 
@@ -454,7 +462,9 @@ const buildExp = async() => {
     return;
   }
 
-  formData.append('bindFile', bindBlob, 'bind.json');  
+  formData.append('bindFile', bindBlob, 'bind.json');
+  const tokenReady = await ensureBoardToken()
+  if (!tokenReady) return
   if (isBuilding.value) return            // 已经在构建中，就不重复触发
   isBuilding.value = true
     /* ---------- 4. 调用后端接口 ---------- */
@@ -492,6 +502,8 @@ const startExp = async () => {
     return;
   }
   if (isStarting.value) return
+  const tokenReady = await ensureBoardToken()
+  if (!tokenReady) return
   isStarting.value = true
   try {
     const resp = await startExperiment();
@@ -527,6 +539,8 @@ const clkButtonLabel = computed(() => (clkFlag.value === 0 ? '↓' : '↑'))
 const clkTooltip = computed(() => (clkFlag.value === 0 ? '下降沿' : '上升沿'))
 
 const sendSignalTest = async () => {
+  const tokenReady = await ensureBoardToken()
+  if (!tokenReady) return
   clkFlag.value = clkFlag.value === 1 ? 0 : 1;
 
   const payload = {
@@ -551,6 +565,8 @@ const sendSignalTest = async () => {
 }
 
 const sendSignal = async () => {
+  const tokenReady = await ensureBoardToken()
+  if (!tokenReady) return
   const { button, sw, input } = deskRef.value?.getAllStates() || {}
 
   // 你自己的格式化，比如把 input 里每行拼成字符串

@@ -35,28 +35,20 @@ export const listActiveBoard = (current, size) => {
     return request.get('/fpga/cb/listPage', {params})
 }
 
-export const getToken = (username, userDepartmentName) => {
-    const params = {}
-    if (username) {
-        params.username = username
-    }
-    if (userDepartmentName) {
-        params.userDepartmentName = userDepartmentName
-    }
-
-    return request.get('/fpga/token/generateToken', {params})
+export const getToken = () => {
+    return request.get('/fpga/token/generateToken', {withCredentials: true})
 }
 
 //post
 
 //???????
 export const checkToken = () => {
-    return request.post('/fpga/token/checkToken')
+    return request.post('/fpga/token/checkToken', {}, {withCredentials: true})
 }
 
 //?????
 export const reload = () => {
-    return request.post('/fpga/token/reload')
+    return request.post('/fpga/token/reload', {}, {withCredentials: true})
 }
 
 export const inline = () => {

@@ -9,6 +9,7 @@ const instance = axios.create({
   // TODO 1. 基础地址，超时时间
   baseURL,
   timeout: 10000,
+  withCredentials: true,
 })
 
 // 请求拦截器
@@ -17,21 +18,33 @@ instance.interceptors.request.use(
     // TODO 2. 携带token
     const useStore = useUserStore()
     const url = config.url || ''
-    const isBoardApi =
-      url.startsWith('/vboard') ||
-      url.startsWith('/fpga')
+    const isBoardApi = url.startsWith('/vboard') || url.startsWith('/fpga')
     const isBoardTokenCheck =
       url.startsWith('/vboard/token/checkToken') ||
-      url.startsWith('/vboard/token/reload')
-    const isBoardTokenGenerate = url.startsWith('/vboard/token/generateToken')
+      url.startsWith('/vboard/token/reload') ||
+      url.startsWith('/fpga/token/checkToken') ||
+      url.startsWith('/fpga/token/reload')
+    const isBoardTokenGenerate =
+      url.startsWith('/vboard/token/generateToken') ||
+      url.startsWith('/fpga/token/generateToken')
 
     if (isBoardTokenGenerate) {
+      if (useStore.token) {
+        // 兼容后端按 satoken 或 token 头读取登录态
+        config.headers.satoken = useStore.token
+        config.headers.token = useStore.token
+      }
       return config
     }
 
-    if ((isBoardApi || isBoardTokenCheck) && useStore.boardToken) {
-      config.headers.token = useStore.boardToken
-    } else if (useStore.token) {
+    if (isBoardApi || isBoardTokenCheck) {
+      // 板卡相关接口只使用实验 token，避免把 satoken 误当板卡 token 传给后端
+      if (useStore.boardToken) config.headers.token = useStore.boardToken
+      return config
+    }
+
+    if (useStore.token) {
+      config.headers.satoken = useStore.token
       config.headers.token = useStore.token
     }
     return config
@@ -48,7 +61,7 @@ instance.interceptors.response.use(
     }
     // TODO 3. 处理业务失败
     // 处理业务失败, 给错误提示，抛出错误
-    ElMessage.error(res.data.message || '服务异常')
+    ElMessage.error(res.data.message || res.data.msg || '服务异常')
     return Promise.reject(res.data)
   },
   err => {
@@ -59,7 +72,7 @@ instance.interceptors.response.use(
     }
 
     // 错误的默认情况 => 只要给提示
-    ElMessage.error(err.response.data.message || '服务异常')
+    ElMessage.error(err.response?.data?.message || err.response?.data?.msg || '服务异常')
     return Promise.reject(err)
   },
 )
