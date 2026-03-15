@@ -21,16 +21,26 @@ const resolveAuthToken = resp =>
   resp?.data?.result?.token ||
   resp?.data?.token
 
+const persistAuthCookie = (tokenName, tokenValue, tokenTimeout) => {
+  if (!tokenName || !tokenValue) return
+  const timeout = Number(tokenTimeout)
+  const maxAgePart = Number.isFinite(timeout) && timeout > 0 ? `; Max-Age=${timeout}` : ''
+  document.cookie = `${tokenName}=${encodeURIComponent(tokenValue)}; Path=/${maxAgePart}`
+}
+
 const handleThirdLogin = async jwtToken => {
   thirdLoginLoading.value = true
   try {
     const resp = await thirdLoginService({ jwtToken })
     const authToken = resolveAuthToken(resp)
+    const tokenName = resp?.data?.result?.tokenName || 'satoken'
+    const tokenTimeout = resp?.data?.result?.tokenTimeout
     if (!authToken || typeof authToken !== 'string') {
       throw new Error('第三方登录 token 获取失败')
     }
 
     userStore.setToken(authToken)
+    persistAuthCookie(tokenName, authToken, tokenTimeout)
     userStore.setRole('guest')
     if (resp?.data?.result?.loginId) {
       userStore.setProfile({ username: resp.data.result.loginId })

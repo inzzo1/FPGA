@@ -25,11 +25,13 @@ instance.interceptors.request.use(
       url.startsWith('/vboard/token/reload')
     const isBoardTokenGenerate = url.startsWith('/vboard/token/generateToken')
 
+    if (isBoardTokenGenerate) {
+      return config
+    }
+
     if ((isBoardApi || isBoardTokenCheck) && useStore.boardToken) {
       config.headers.token = useStore.boardToken
-    } else if (!isBoardTokenGenerate && useStore.token) {
-      config.headers.token = useStore.token
-    } else if (isBoardTokenGenerate && useStore.token) {
+    } else if (useStore.token) {
       config.headers.token = useStore.token
     }
     return config

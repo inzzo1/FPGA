@@ -28,8 +28,8 @@ export const generateVerificationCodeImageService = data =>
   })
 
 // 生成 token（VbTokenController）
-export const generateTokenService = params =>
-  request.get('/vboard/token/generateToken', { params })
+export const generateTokenService = () =>
+  request.get('/vboard/token/generateToken', { withCredentials: true })
 
 // 校验 token（VbTokenController）
 export const checkTokenService = () => request.post('/vboard/token/checkToken')
@@ -52,7 +52,7 @@ export const getSchoolsService = () =>
 
 // 获取学院/部门列表（登录页下拉框）
 export const getDepartmentListService = (params = { current: 1, size: 100 }) =>
-  request.get('/department/listPage', { params })
+  request.get('/account/department/listPage', { params })
 
 // 角色映射逻辑（接口文档------妹写？？）
 const getRoleId = role => {

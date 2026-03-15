@@ -137,19 +137,15 @@ const isBuild = ref(false)
 
 const ensureBoardToken = async () => {
   if (userStore.boardToken) return
-  if (!userStore.username || !userStore.departmentName) {
-    ElMessage.error('缺少用户名或学院/部门信息，无法生成板卡 token')
-    return
-  }
   try {
-    const tokenResp = await generateTokenService({
-      username: userStore.username,
-      userDepartmentName: userStore.departmentName,
-    })
+    const tokenResp = await generateTokenService()
     const token =
-      tokenResp.data?.msg ||
+      tokenResp.data?.result?.tokenValue ||
       tokenResp.data?.result?.token ||
-      tokenResp.data?.result?.tokenString
+      tokenResp.data?.result?.tokenString ||
+      tokenResp.data?.tokenValue ||
+      tokenResp.data?.token ||
+      tokenResp.data?.msg
     if (!token || typeof token !== 'string') {
       throw new Error('板卡 token 生成失败')
     }

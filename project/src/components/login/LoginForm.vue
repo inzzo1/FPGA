@@ -139,6 +139,13 @@ const onDepartmentChange = value => {
   formModel.value.departmentName = selected?.label || ''
 }
 
+const persistAuthCookie = (tokenName, tokenValue, tokenTimeout) => {
+  if (!tokenName || !tokenValue) return
+  const timeout = Number(tokenTimeout)
+  const maxAgePart = Number.isFinite(timeout) && timeout > 0 ? `; Max-Age=${timeout}` : ''
+  document.cookie = `${tokenName}=${encodeURIComponent(tokenValue)}; Path=/${maxAgePart}`
+}
+
 onMounted(() => {
   fetchCaptcha()
   fetchDepartments()
@@ -160,16 +167,20 @@ const login = async () => {
       verificationCodeValue: formModel.value.captcha,
     })
     const authToken =
-      loginResp.data?.msg ||
+      loginResp.data?.result?.tokenValue ||
       loginResp.data?.result?.token ||
       loginResp.data?.result?.tokenString ||
+      loginResp.data?.tokenValue ||
       loginResp.data?.token
+    const tokenName = loginResp.data?.result?.tokenName || 'satoken'
+    const tokenTimeout = loginResp.data?.result?.tokenTimeout
 
     if (!authToken || typeof authToken !== 'string') {
       throw new Error('登录 token 获取失败')
     }
 
     userStore.setToken(authToken)
+    persistAuthCookie(tokenName, authToken, tokenTimeout)
     userStore.setRole(formModel.value.role)
     userStore.setProfile({
       username: formModel.value.username,
