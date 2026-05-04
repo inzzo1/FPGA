@@ -6,16 +6,47 @@
     interface Button {
         name: string;
         state: boolean;
+        btIndex: number;
     }
 
     const buttonList = ref<Button[][]>([
-        [{name:'R4', state: false}, {name:'AA4', state: false}, {name:'AB6', state: false}, {name:'T5', state: false} ],
-        [{name:'V8', state: false}, {name:'AA8', state: false}, {name:'V9', state: false}, {name:'Y9', state: false}]
+        [{name:'R4', state: false, btIndex: 7}, {name:'AA4', state: false, btIndex: 6}, {name:'AB6', state: false, btIndex: 5}, {name:'T5', state: false, btIndex: 4} ],
+        [{name:'V8', state: false, btIndex: 3}, {name:'AA8', state: false, btIndex: 2}, {name:'V9', state: false, btIndex: 1}, {name:'Y9', state: false, btIndex: 0}]
     ])
 
     const toggleButton = (button: Button) => {
         button.state = !button.state;  // 切换按钮状态
     };
+
+    const flatButtonList = () => buttonList.value.flat()
+
+    // 8 位字符串，顺序：BT0 -> BT7
+    const getStatusString = () => {
+        return Array.from({ length: 8 }, (_, index) => {
+            const target = flatButtonList().find(item => item.btIndex === index)
+            return target?.state ? '1' : '0'
+        }).join('')
+    }
+
+    const setStatusFromString = (status: string) => {
+        if (!status || typeof status !== 'string') return
+        const normalized = status.trim().padEnd(8, '0').slice(0, 8)
+        const map = new Map<number, boolean>()
+        normalized.split('').forEach((bit, idx) => {
+            map.set(idx, bit === '1')
+        })
+        for (const item of flatButtonList()) {
+            item.state = map.get(item.btIndex) ?? false
+        }
+    }
+
+    const resetStates = () => {
+        for (const item of flatButtonList()) {
+            item.state = false
+        }
+    }
+
+    defineExpose({ getStatusString, setStatusFromString, resetStates })
 </script>
 
 <template>

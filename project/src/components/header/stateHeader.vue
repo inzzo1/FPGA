@@ -1,8 +1,18 @@
 <script setup lang="ts">
-  import { ref } from 'vue';
+import { computed } from 'vue'
 
-    const format = () => ('')
-    const state = ref(true)
+const props = withDefaults(defineProps<{
+  burned?: boolean
+  remainText?: string
+  progress?: number
+}>(), {
+  burned: false,
+  remainText: 'XXXXX',
+  progress: 80
+})
+
+const format = () => ''
+const state = computed(() => props.burned)
 </script>
 
 <template>
@@ -10,7 +20,7 @@
       <div class="headerBg">
         <div style="display: flex; justify-content: space-around; align-items: center;
         width: 100%;height: 93%;">
-          <span>剩余时间：XXXXX</span>
+          <span>剩余时间：{{ props.remainText }}</span>
             <div style="display: inline-flex; align-items: center;">
             <el-icon size="22px" color="rgb(0, 230, 81)" v-if="state">
               <SuccessFilled />
@@ -24,7 +34,7 @@
           </div>
         </div>
         <div style="width: 108%; height: 10%;">
-          <el-progress :percentage="80" :format="format" color="rgb(101, 231, 0)"/>
+          <el-progress :percentage="props.progress" :format="format" color="rgb(101, 231, 0)"/>
         </div>
       </div>
     </div>

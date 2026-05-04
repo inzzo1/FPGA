@@ -20,6 +20,36 @@
         switchItem.state = !switchItem.state;  
     };
 
+    const flatSwitchList = () => switchList.value.flat()
+
+    // 32 位字符串，顺序：SW0 -> SW31
+    const getStatusString = () => {
+        return Array.from({ length: 32 }, (_, number) => {
+            const target = flatSwitchList().find(item => item.number === number)
+            return target?.state ? '1' : '0'
+        }).join('')
+    }
+
+    const setStatusFromString = (status: string) => {
+        if (!status || typeof status !== 'string') return
+        const normalized = status.trim().padEnd(32, '0').slice(0, 32)
+        const map = new Map<number, boolean>()
+        normalized.split('').forEach((bit, idx) => {
+            map.set(idx, bit === '1')
+        })
+        for (const item of flatSwitchList()) {
+            item.state = map.get(item.number) ?? false
+        }
+    }
+
+    const resetStates = () => {
+        for (const item of flatSwitchList()) {
+            item.state = false
+        }
+    }
+
+    defineExpose({ getStatusString, setStatusFromString, resetStates })
+
 </script>
 
 <template>

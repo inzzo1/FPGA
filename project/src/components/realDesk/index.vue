@@ -1,10 +1,38 @@
 <script setup lang="ts">
-    import Header from '@/components/header/deskHeader.vue'
-    import CpIntro from './realdeskcomponents/deskCpIntro.vue';
-    import LedLight from './realdeskcomponents/deskLedLight.vue'
-    import Tubes from '@/components/tubes/tube.vue'
-    import Button from './realdeskcomponents/deskButton.vue';
-    import deskSwitch from './realdeskcomponents/deskSwitch.vue';
+import Header from '@/components/header/deskHeader.vue'
+import CpIntro from './realdeskcomponents/deskCpIntro.vue';
+import LedLight from './realdeskcomponents/deskLedLight.vue'
+import Tubes from '@/components/tubes/tube.vue'
+import Button from './realdeskcomponents/deskButton.vue';
+import deskSwitch from './realdeskcomponents/deskSwitch.vue';
+import { defineProps, ref, type PropType } from 'vue'
+
+const props = defineProps({
+  ledBits: { type: Array as PropType<number[]>, default: () => [] }
+})
+
+const btnComp = ref<InstanceType<typeof Button>>()
+const swComp = ref<InstanceType<typeof deskSwitch>>()
+
+// Tubes 组件现在使用 digitIndices/decimalPositions，不再使用旧的 showNumber
+const digitIndices = [0, 0, 0, 0, 0, 0, 0, 0] // 8 个“-”
+const decimalPositions: number[] = []
+
+const getAllStates = () => ({
+  switchButtonStatus: swComp.value?.getStatusString?.() || '0'.repeat(32),
+  tapButtonStatus: btnComp.value?.getStatusString?.() || '0'.repeat(8)
+})
+
+const setProcessedButtonString = (status: string) => {
+  btnComp.value?.setStatusFromString?.(status)
+}
+
+const resetDeskStates = () => {
+  btnComp.value?.resetStates?.()
+  swComp.value?.resetStates?.()
+}
+
+defineExpose({ getAllStates, setProcessedButtonString, resetDeskStates })
 </script>
 
 
@@ -19,6 +47,7 @@
             <div style="width: 50%; height: 100%;">
                 <Header 
                 :headerName= "'HDU-XL-CB502'"
+                boardType="real"
                 style="width: 100%; height: 40%;" 
                 ></Header>
                 <CpIntro
@@ -28,24 +57,25 @@
         </div>
         <div class="bodyPar1">
             <div class="LedLight">
-                <LedLight>
+                <LedLight :ledBits="props.ledBits">
                 </LedLight>
             </div>
             <div class="rightPart">
                 <div class="digitTube">
                     <Tubes
-                    :showNumber="99999999"
                     :isOutPut="false"
+                    :digitIndices="digitIndices"
+                    :decimalPositions="decimalPositions"
                     style="width: 100%; height: 120%; margin-top: 3%;"
                     ></Tubes>
                 </div>
                 <div class="button">
-                    <Button></Button>
+                    <Button ref="btnComp"></Button>
                 </div>
             </div>
         </div>
         <div class="bodyPar2">
-            <deskSwitch></deskSwitch>
+            <deskSwitch ref="swComp"></deskSwitch>
         </div>
     </div>
 </template>

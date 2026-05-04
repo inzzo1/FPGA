@@ -1,7 +1,13 @@
 <script setup lang="ts">
     import LightOff from '@/assets/LED/lightOff.vue';
     import LightOn from '@/assets/LED/lightOn.vue';
-    import { ref } from 'vue';
+    import { ref, withDefaults } from 'vue';
+
+    const props = withDefaults(defineProps<{
+        ledBits?: number[]
+    }>(), {
+        ledBits: () => []
+    })
 
     const allLeds = ref(
         [
@@ -12,6 +18,7 @@
         ]
     )
 
+    const isLedOn = (number: number) => Number(props.ledBits[number] ?? 0) === 1
 </script>
 
  <template>
@@ -26,7 +33,10 @@
                             </span>
                         </div>
                         <div style="display: flex; justify-content: center;">
-                            <LightOff style="width: 80%; height: auto; transform: rotate(90deg);"></LightOff>
+                            <component
+                            :is="isLedOn(led.number) ? LightOn : LightOff"
+                            style="width: 80%; height: auto; transform: rotate(90deg);"
+                            ></component>
                         </div>
                         <div style="display: flex; justify-content: center;align-items: center ; height: 50%;">
                             <span style="color: #4CA2FF; font-size: 10px;">
