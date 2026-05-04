@@ -39,10 +39,12 @@ import upLoad from '@/components/upLoad.vue';
 
 <style lang="scss" scoped>
   .backGround{
-    background-image: url('../assets/bg-dyn-light.png');
+    background-image: url('../../src/assets/bj.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
     position: relative;
     overflow: hidden;
     .bdPart{
