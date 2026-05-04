@@ -28,6 +28,7 @@ const BOARD_SYNC_INTERVAL_MS = 3000
 
 let tokenReloadTimer: number | null = null
 let tokenReloading = false
+let tokenPollFailedNotified = false
 let boardSyncTimer: number | null = null
 let boardSyncing = false
 let queuePollTimer: number | null = null
@@ -35,6 +36,7 @@ let queuePollTimer: number | null = null
 const uploadingBit = ref(false)
 const reloadingBit = ref(false)
 const hasUploadedBit = ref(false)
+const pendingBitFile = ref<File | null>(null)
 const syncingSignal = ref(false)
 const finishingExperiment = ref(false)
 const waitingForBoard = ref(false)
@@ -82,17 +84,6 @@ const ensureRealBoardToken = async ({ force = false, silent = false } = {}) => {
   }
 }
 
-const validateRealBoardToken = async () => {
-  if (!userStore.boardToken) return false
-  try {
-    await checkToken({ silent: true })
-    return true
-  } catch {
-    userStore.setBoardToken('')
-    return false
-  }
-}
-
 const stopRealBoardTokenPolling = () => {
   if (tokenReloadTimer) {
     window.clearInterval(tokenReloadTimer)
@@ -102,29 +93,26 @@ const stopRealBoardTokenPolling = () => {
 
 const startRealBoardTokenPolling = () => {
   stopRealBoardTokenPolling()
+  tokenPollFailedNotified = false
   tokenReloadTimer = window.setInterval(async () => {
     if (tokenReloading) return
     tokenReloading = true
     try {
-      if (!userStore.boardToken) {
-        await ensureRealBoardToken({ silent: true })
-        return
-      }
+      if (!userStore.boardToken) return
 
-      const tokenValid = await validateRealBoardToken()
-      if (!tokenValid) {
-        await ensureRealBoardToken({ silent: true })
-        return
+      await checkToken({ silent: true })
+      // 按需求忽略 reload 返回值，仅用于刷新有效期
+      await reload({ silent: true })
+    } catch (err: any) {
+      stopRealBoardTokenPolling()
+      if (!tokenPollFailedNotified) {
+        tokenPollFailedNotified = true
+        ElMessage.error(
+          err?.msg ||
+          err?.message ||
+          'token 校验/续期失败，请手动重新进入页面'
+        )
       }
-
-      const reloadResp = await reload({ silent: true })
-      const refreshedToken = resolveBoardTokenFromResp(reloadResp)
-      if (refreshedToken && typeof refreshedToken === 'string') {
-        userStore.setBoardToken(refreshedToken)
-      }
-    } catch {
-      userStore.setBoardToken('')
-      await ensureRealBoardToken({ silent: true })
     } finally {
       tokenReloading = false
     }
@@ -154,6 +142,29 @@ const findBitString = (
   }
   for (const value of Object.values(input)) {
     const found = findBitString(value, minLength, maxLength)
+    if (found) return found
+  }
+  return null
+}
+
+const findHexString = (input: any, expectedLength = 8): string | null => {
+  if (typeof input === 'string') {
+    const trimmed = input.trim().replace(/^0x/i, '')
+    if (new RegExp(`^[0-9a-fA-F]{${expectedLength}}$`).test(trimmed)) {
+      return trimmed.toUpperCase()
+    }
+    return null
+  }
+  if (!input || typeof input !== 'object') return null
+  if (Array.isArray(input)) {
+    for (const item of input) {
+      const found = findHexString(item, expectedLength)
+      if (found) return found
+    }
+    return null
+  }
+  for (const value of Object.values(input)) {
+    const found = findHexString(value, expectedLength)
     if (found) return found
   }
   return null
@@ -247,6 +258,18 @@ const applyLightString = (lightString: string) => {
   )
 }
 
+const applyLightHexString = (hexString: string) => {
+  const normalized = hexString.trim().replace(/^0x/i, '').toUpperCase()
+  if (!/^[0-9A-F]{8}$/.test(normalized)) return
+
+  // 每个十六进制字符映射四位二进制，按 LED0 -> LED31 顺序展开
+  const bits = normalized
+    .split('')
+    .flatMap(char => Number.parseInt(char, 16).toString(2).padStart(4, '0').split(''))
+
+  ledBits.value = bits.slice(0, 32).map(bit => (bit === '1' ? 1 : 0))
+}
+
 const syncBoardOutputs = async ({ silent = true, withNixieTube = false, lockUi = false } = {}) => {
   if (lockUi && syncingSignal.value) return
   if (lockUi) syncingSignal.value = true
@@ -265,11 +288,18 @@ const syncBoardOutputs = async ({ silent = true, withNixieTube = false, lockUi =
     }
     const [lightResp, btnResp] = await Promise.all(requestList)
 
-    const lightString =
-      findBitString(lightResp?.data?.result, 32, 32) ||
-      findBitString(lightResp?.data, 32, 32)
-    if (lightString) {
-      applyLightString(lightString)
+    const lightHexString =
+      findHexString(lightResp?.data?.result, 8) ||
+      findHexString(lightResp?.data, 8)
+    if (lightHexString) {
+      applyLightHexString(lightHexString)
+    } else {
+      const lightString =
+        findBitString(lightResp?.data?.result, 32, 32) ||
+        findBitString(lightResp?.data, 32, 32)
+      if (lightString) {
+        applyLightString(lightString)
+      }
     }
 
     const btnString =
@@ -319,23 +349,8 @@ const requireBoardReady = () => {
 }
 
 const handleBitUpload = async (file: File) => {
-  if (uploadingBit.value) return
-  uploadingBit.value = true
-  try {
-    if (!requireBoardReady()) return
-    const tokenReady = await ensureRealBoardToken()
-    if (!tokenReady) return
-    await uploadBit(file)
-    hasUploadedBit.value = true
-    isRecorded.value = true
-    ElMessage.success('bit 文件上传成功')
-    await syncRecordedStatus({ silent: true })
-    await syncBoardOutputs({ silent: true })
-  } catch (err: any) {
-    ElMessage.error(err?.msg || err?.message || 'bit 文件上传失败')
-  } finally {
-    uploadingBit.value = false
-  }
+  pendingBitFile.value = file
+  ElMessage.info(`已选择文件：${file.name}，点击“点击烧录”开始上传`)
 }
 
 const handleReloadBitFile = async () => {
@@ -345,14 +360,27 @@ const handleReloadBitFile = async () => {
     if (!requireBoardReady()) return
     const tokenReady = await ensureRealBoardToken()
     if (!tokenReady) return
-    await reloadBitFile()
+
+    // 有新选择的文件：执行上传烧录；无新文件：执行重新烧录历史文件
+    if (pendingBitFile.value) {
+      uploadingBit.value = true
+      const targetFile = pendingBitFile.value
+      await uploadBit(targetFile)
+      pendingBitFile.value = null
+      hasUploadedBit.value = true
+      ElMessage.success(`bit 文件上传并烧录成功：${targetFile.name}`)
+    } else {
+      await reloadBitFile()
+      ElMessage.success(hasUploadedBit.value ? '烧录成功' : '已重新烧录上次上传文件')
+    }
+
     isRecorded.value = true
-    ElMessage.success(hasUploadedBit.value ? '烧录成功' : '已重新烧录上次上传文件')
     await syncRecordedStatus({ silent: true })
     await syncBoardOutputs({ silent: true })
   } catch (err: any) {
     ElMessage.error(err?.msg || err?.message || '烧录失败，请先上传 bit 文件')
   } finally {
+    uploadingBit.value = false
     reloadingBit.value = false
   }
 }
@@ -390,6 +418,7 @@ const handleFinishExperiment = async () => {
 
     userStore.setBoardToken('')
     hasUploadedBit.value = false
+    pendingBitFile.value = null
     isRecorded.value = false
     boardReady.value = false
     waitingForBoard.value = false
