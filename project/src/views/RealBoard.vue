@@ -43,6 +43,7 @@ const waitingForBoard = ref(false)
 const boardReady = ref(false)
 const queueText = ref('')
 const realDeskRef = ref<InstanceType<typeof RealDesk>>()
+const uploadCompRef = ref<InstanceType<typeof upLoad>>()
 const ledBits = ref<number[]>(Array(32).fill(0))
 const isRecorded = ref(false)
 const remainText = ref('XXXXX')
@@ -101,8 +102,22 @@ const startRealBoardTokenPolling = () => {
       if (!userStore.boardToken) return
 
       await checkToken({ silent: true })
-      // 按需求忽略 reload 返回值，仅用于刷新有效期
-      await reload({ silent: true })
+      const reloadResp = await reload({ silent: true })
+      // 不使用 reload 返回的 token，但用它返回的 connectionVO 更新剩余时间
+      const connection = getUserConnectionVO(reloadResp)
+      if (connection) {
+        const leftSecond = connection?.leftSecond
+        if (leftSecond !== undefined && leftSecond !== null && String(leftSecond).trim() !== '') {
+          remainText.value = String(leftSecond)
+        }
+      } else {
+        const remain =
+          findRemainText(reloadResp?.data?.result) ??
+          findRemainText(reloadResp?.data?.msg)
+        if (remain !== null) {
+          remainText.value = remain
+        }
+      }
     } catch (err: any) {
       stopRealBoardTokenPolling()
       if (!tokenPollFailedNotified) {
@@ -367,6 +382,7 @@ const handleReloadBitFile = async () => {
       const targetFile = pendingBitFile.value
       await uploadBit(targetFile)
       pendingBitFile.value = null
+      uploadCompRef.value?.clearSelected?.()
       hasUploadedBit.value = true
       ElMessage.success(`bit 文件上传并烧录成功：${targetFile.name}`)
     } else {
@@ -419,6 +435,7 @@ const handleFinishExperiment = async () => {
     userStore.setBoardToken('')
     hasUploadedBit.value = false
     pendingBitFile.value = null
+    uploadCompRef.value?.clearSelected?.()
     isRecorded.value = false
     boardReady.value = false
     waitingForBoard.value = false
@@ -427,13 +444,9 @@ const handleFinishExperiment = async () => {
     remainText.value = 'XXXXX'
     ledBits.value = Array(32).fill(0)
     realDeskRef.value?.resetDeskStates?.()
+    stopQueuePolling()
+    stopBoardSyncPolling()
     ElMessage.success('实验已结束')
-
-    await ensureRealBoardToken({ force: true, silent: true })
-    await enterWaitingQueue()
-    if (boardReady.value) {
-      await syncRecordedStatus({ silent: true })
-    }
   } catch (err: any) {
     ElMessage.error(err?.msg || err?.message || '结束实验失败')
   } finally {
@@ -586,7 +599,7 @@ onBeforeUnmount(() => {
             <span>点击获取实拍图片</span>
           </div>
           <div class="uploadPart">
-            <upLoad @uploaded="handleBitUpload"></upLoad>
+            <upLoad ref="uploadCompRef" @uploaded="handleBitUpload"></upLoad>
           </div>
           <div class="buttonGroup">
             <el-button
