@@ -18,7 +18,7 @@ const displayName = computed(() => userStore.username || '未登录')
       </div>
       <el-menu mode="horizontal" class="menu" router  :default-active="$route.path">
         <el-menu-item index="/VirtualBoard">首页</el-menu-item>
-        <el-menu-item index="/teacher-dashboard">实验概览</el-menu-item>
+        <el-menu-item index="/teacher-dashboard">实验</el-menu-item>
         <el-menu-item index="3">团队</el-menu-item>
         <el-menu-item index="4">数据</el-menu-item>
       </el-menu>
