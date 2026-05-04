@@ -1,21 +1,21 @@
 import request from '@/utils/request'
 
 //get
-export const getLight = () => {
-    return request.get('/fpga/cb/getLightString')
+export const getLight = (config = {}) => {
+    return request.get('/fpga/cb/getLightString', config)
 }
 
-export const getNixieTube = () => {
-    return request.get('/fpga/cb/getNixieTubeString')
+export const getNixieTube = (config = {}) => {
+    return request.get('/fpga/cb/getNixieTubeString', config)
 }
 
-export const getProcessedBtn = () => {
-    return request.get('/fpga/cb/getProcessedBtnStr')
+export const getProcessedBtn = (config = {}) => {
+    return request.get('/fpga/cb/getProcessedBtnStr', config)
 }
 
-export const getRecordedStatus = (cbIp) => {
+export const getRecordedStatus = (cbIp, config = {}) => {
     const params = cbIp ? {cbIp} : {}
-    return request.get('/fpga/cb/getRecordedStatus?cbIp', {params})
+    return request.get('/fpga/cb/getRecordedStatus', { ...config, params })
 }
 
 export const getSingleBoard = (id) => {
@@ -35,28 +35,28 @@ export const listActiveBoard = (current, size) => {
     return request.get('/fpga/cb/listPage', {params})
 }
 
-export const getToken = () => {
-    return request.get('/fpga/token/generateToken', {withCredentials: true})
+export const getToken = (config = {}) => {
+    return request.get('/fpga/token/generateToken', { ...config, withCredentials: true })
 }
 
 //post
 
 //???????
-export const checkToken = () => {
-    return request.post('/fpga/token/checkToken', {}, {withCredentials: true})
+export const checkToken = (config = {}) => {
+    return request.post('/fpga/token/checkToken', {}, { ...config, withCredentials: true })
 }
 
 //?????
-export const reload = () => {
-    return request.post('/fpga/token/reload', {}, {withCredentials: true})
+export const reload = (config = {}) => {
+    return request.post('/fpga/token/reload', {}, { ...config, withCredentials: true })
 }
 
-export const inline = () => {
-    return request.post('/fpga/waiting/inLine')
+export const inline = (config = {}) => {
+    return request.post('/fpga/waiting/inLine', {}, config)
 }
 
-export const checkAvailability = () => {
-    return request.post('/fpga/waiting/checkAvailability')
+export const checkAvailability = (config = {}) => {
+    return request.post('/fpga/waiting/checkAvailability', {}, config)
 }
 
 
@@ -71,29 +71,29 @@ export const reloadBitFile = () => {
     return request.post('/fpga/file/reloadBitFile')
 }
 
-export const finish = () => {
-    return request.post('/fpga/cb/finish')
+export const finish = (config = {}) => {
+    return request.post('/fpga/cb/finish', {}, config)
 }
 
-export const sendButtonString = (switchButton,tapButton) => {
+export const sendButtonString = (switchButtonStatus, tapButtonStatus, config = {}) => {
     const params = {}
-    if (switchButton) {
-        params.switchButton = switchButton
+    if (switchButtonStatus !== undefined) {
+        params.switchButtonStatus = switchButtonStatus
     }
-    if (tapButton) {
-        params.tapButton = tapButton
+    if (tapButtonStatus !== undefined) {
+        params.tapButtonStatus = tapButtonStatus
     }
 
-    return request.post('/fpga/cb/sendButtonString',{},{params})
+    return request.post('/fpga/cb/sendButtonString', {}, { ...config, params })
 }
 
-export const loadHistory = (tag) => {
+export const loadHistory = (tag, config = {}) => {
     const params = {}
-    if (tag) {
+    if (tag !== undefined) {
         params.tag = tag
     }
 
-    return request.post('/fpga/cb/loadHistory',{},{params})
+    return request.post('/fpga/cb/loadHistory', {}, { ...config, params })
 }
 
 export const buildExperiment = (formData) => {
