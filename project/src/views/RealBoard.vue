@@ -31,6 +31,7 @@ let tokenPollFailedNotified = false
 let boardSyncTimer: number | null = null
 let boardSyncing = false
 let queuePollTimer: number | null = null
+let localCountdownTimer: number | null = null
 
 const uploadingBit = ref(false)
 const reloadingBit = ref(false)
@@ -613,6 +614,29 @@ const stopBoardSyncPolling = () => {
   }
 }
 
+const stopLocalCountdown = () => {
+  if (localCountdownTimer) {
+    window.clearInterval(localCountdownTimer)
+    localCountdownTimer = null
+  }
+}
+
+const startLocalCountdown = () => {
+  stopLocalCountdown()
+  localCountdownTimer = window.setInterval(() => {
+    if (!boardReady.value) return
+    if (remainSeconds.value === null) return
+    if (remainSeconds.value <= 0) {
+      remainSeconds.value = 0
+      remainText.value = '0'
+      return
+    }
+
+    remainSeconds.value -= 1
+    remainText.value = String(remainSeconds.value)
+  }, 1000)
+}
+
 const startBoardSyncPolling = () => {
   stopBoardSyncPolling()
   boardSyncTimer = window.setInterval(async () => {
@@ -640,6 +664,7 @@ onMounted(async () => {
   await ensureRealBoardToken({ force: true, silent: true })
   startRealBoardTokenPolling()
   startBoardSyncPolling()
+  startLocalCountdown()
   await enterWaitingQueue()
   if (boardReady.value) {
     await syncBoardOutputs({ silent: true, withNixieTube: true })
@@ -651,6 +676,7 @@ onBeforeUnmount(() => {
   stopRealBoardTokenPolling()
   stopBoardSyncPolling()
   stopQueuePolling()
+  stopLocalCountdown()
 })
 </script>
 
