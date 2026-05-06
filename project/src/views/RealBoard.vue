@@ -15,7 +15,6 @@ import {
   getRecordedStatus,
   getToken,
   inline,
-  loadHistory,
   reload,
   reloadBitFile,
   sendButtonString,
@@ -47,8 +46,32 @@ const uploadCompRef = ref<InstanceType<typeof upLoad>>()
 const ledBits = ref<number[]>(Array(32).fill(0))
 const isRecorded = ref(false)
 const remainText = ref('XXXXX')
-const headerProgress = computed(() => (isRecorded.value ? 100 : 0))
+const remainSeconds = ref<number | null>(null)
+const totalSeconds = ref<number | null>(null)
+const headerProgress = computed(() => {
+  if (!boardReady.value) return 0
+  if (
+    totalSeconds.value !== null &&
+    totalSeconds.value > 0 &&
+    remainSeconds.value !== null
+  ) {
+    const percentage = (remainSeconds.value / totalSeconds.value) * 100
+    return Math.max(0, Math.min(100, Number(percentage.toFixed(2))))
+  }
+  return isRecorded.value ? 100 : 0
+})
 const boardIp = ref('')
+const displayRemainText = computed(() => {
+  if (!boardReady.value) {
+    return queueText.value || '正在排队，请稍候'
+  }
+  if (remainSeconds.value === null) return remainText.value
+
+  const total = Math.max(0, remainSeconds.value)
+  const minutes = Math.floor(total / 60)
+  const seconds = total % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
 
 const resolveBoardTokenFromResp = (resp: any) => {
   const headerToken =
@@ -103,19 +126,21 @@ const startRealBoardTokenPolling = () => {
 
       await checkToken({ silent: true })
       const reloadResp = await reload({ silent: true })
-      // 不使用 reload 返回的 token，但用它返回的 connectionVO 更新剩余时间
-      const connection = getUserConnectionVO(reloadResp)
-      if (connection) {
-        const leftSecond = connection?.leftSecond
-        if (leftSecond !== undefined && leftSecond !== null && String(leftSecond).trim() !== '') {
-          remainText.value = String(leftSecond)
-        }
-      } else {
-        const remain =
-          findRemainText(reloadResp?.data?.result) ??
-          findRemainText(reloadResp?.data?.msg)
-        if (remain !== null) {
-          remainText.value = remain
+      // 不使用 reload 返回的 token；只有已分配板卡时才刷新剩余时间
+      if (boardReady.value) {
+        const connection = getUserConnectionVO(reloadResp)
+        if (connection) {
+          const leftSecond = connection?.leftSecond
+          if (leftSecond !== undefined && leftSecond !== null && String(leftSecond).trim() !== '') {
+            setRemainByValue(leftSecond)
+          }
+        } else {
+          const remain =
+            findRemainText(reloadResp?.data?.result) ??
+            findRemainText(reloadResp?.data?.msg)
+          if (remain !== null) {
+            setRemainByValue(remain)
+          }
         }
       }
     } catch (err: any) {
@@ -213,6 +238,25 @@ const findRemainText = (input: any): string | null => {
   return null
 }
 
+const setRemainByValue = (value: unknown) => {
+  const text = value === null || value === undefined ? '' : String(value).trim()
+  if (!text) return
+
+  remainText.value = text
+
+  if (/^\d+$/.test(text)) {
+    const seconds = Number.parseInt(text, 10)
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      remainSeconds.value = seconds
+      if (totalSeconds.value === null || seconds > totalSeconds.value) {
+        totalSeconds.value = seconds
+      }
+      return
+    }
+  }
+  remainSeconds.value = null
+}
+
 const findBooleanValue = (input: any): boolean | null => {
   if (typeof input === 'boolean') return input
   if (typeof input === 'number') {
@@ -262,7 +306,7 @@ const applyConnectionInfo = (connection: any) => {
 
   const leftSecond = connection?.leftSecond
   if (leftSecond !== undefined && leftSecond !== null && String(leftSecond).trim() !== '') {
-    remainText.value = String(leftSecond)
+    setRemainByValue(leftSecond)
   }
 }
 
@@ -283,6 +327,30 @@ const applyLightHexString = (hexString: string) => {
     .flatMap(char => Number.parseInt(char, 16).toString(2).padStart(4, '0').split(''))
 
   ledBits.value = bits.slice(0, 32).map(bit => (bit === '1' ? 1 : 0))
+}
+
+const hexToBits = (hexString: string, expectedHexLength: number): string | null => {
+  const normalized = hexString.trim().replace(/^0x/i, '').toUpperCase()
+  if (!new RegExp(`^[0-9A-F]{${expectedHexLength}}$`).test(normalized)) return null
+
+  return normalized
+    .split('')
+    .flatMap(char => Number.parseInt(char, 16).toString(2).padStart(4, '0').split(''))
+    .join('')
+}
+
+const applyProcessedStatusHexString = (hexString: string) => {
+  const normalized = hexString.trim().replace(/^0x/i, '').toUpperCase()
+  if (!/^[0-9A-F]{10}$/.test(normalized)) return
+
+  const swHex = normalized.slice(0, 8)  // SW0-SW31
+  const btHex = normalized.slice(8, 10) // BT0-BT7
+
+  const swBits = hexToBits(swHex, 8)
+  const btBits = hexToBits(btHex, 2)
+  if (!swBits || !btBits) return
+
+  realDeskRef.value?.setProcessedStatus?.(swBits, btBits)
 }
 
 const syncBoardOutputs = async ({ silent = true, withNixieTube = false, lockUi = false } = {}) => {
@@ -317,11 +385,20 @@ const syncBoardOutputs = async ({ silent = true, withNixieTube = false, lockUi =
       }
     }
 
-    const btnString =
-      findBitString(btnResp?.data?.result, 6, 8) ||
-      findBitString(btnResp?.data, 6, 8)
-    if (btnString) {
-      realDeskRef.value?.setProcessedButtonString(btnString)
+    const processedHex =
+      findHexString(btnResp?.data?.result, 10) ||
+      findHexString(btnResp?.data?.msg, 10) ||
+      findHexString(btnResp?.data, 10)
+    if (processedHex) {
+      applyProcessedStatusHexString(processedHex)
+    } else {
+      const btnString =
+        findBitString(btnResp?.data?.result, 6, 8) ||
+        findBitString(btnResp?.data?.msg, 6, 8) ||
+        findBitString(btnResp?.data, 6, 8)
+      if (btnString) {
+        realDeskRef.value?.setProcessedButtonString(btnString)
+      }
     }
   } catch (err: any) {
     if (!silent) {
@@ -348,7 +425,7 @@ const syncRecordedStatus = async ({ silent = true } = {}) => {
       isRecorded.value = status
     }
     if (remain !== null) {
-      remainText.value = remain
+      setRemainByValue(remain)
     }
   } catch (err: any) {
     if (!silent) {
@@ -429,7 +506,6 @@ const handleFinishExperiment = async () => {
       if (!tokenReady) return
 
       await finish()
-      await loadHistory(false, { silent: true })
     }
 
     userStore.setBoardToken('')
@@ -442,6 +518,8 @@ const handleFinishExperiment = async () => {
     boardIp.value = ''
     queueText.value = ''
     remainText.value = 'XXXXX'
+    remainSeconds.value = null
+    totalSeconds.value = null
     ledBits.value = Array(32).fill(0)
     realDeskRef.value?.resetDeskStates?.()
     stopQueuePolling()
@@ -481,7 +559,7 @@ const checkBoardAvailability = async ({ silent = true } = {}) => {
   waitingForBoard.value = true
   boardReady.value = false
   queueText.value = message || '排队中，等待空闲板卡'
-  remainText.value = queueText.value
+  setRemainByValue(queueText.value)
   return false
 }
 
@@ -493,7 +571,6 @@ const startQueuePolling = () => {
       const ready = await checkBoardAvailability({ silent: true })
       if (ready) {
         stopQueuePolling()
-        await loadHistory(true, { silent: true }).catch(() => {})
         await syncBoardOutputs({ silent: true, withNixieTube: true })
         await syncRecordedStatus({ silent: true })
         ElMessage.success('已分配到板卡，可以开始实验')
@@ -524,7 +601,7 @@ const enterWaitingQueue = async () => {
   waitingForBoard.value = true
   boardReady.value = false
   queueText.value = message || '正在排队，请稍候'
-  remainText.value = queueText.value
+  setRemainByValue(queueText.value)
   ElMessage.info(queueText.value)
   startQueuePolling()
 }
@@ -565,7 +642,6 @@ onMounted(async () => {
   startBoardSyncPolling()
   await enterWaitingQueue()
   if (boardReady.value) {
-    await loadHistory(true, { silent: true }).catch(() => {})
     await syncBoardOutputs({ silent: true, withNixieTube: true })
     await syncRecordedStatus({ silent: true })
   }
@@ -585,8 +661,9 @@ onBeforeUnmount(() => {
         <div class="header">
           <stateHeader
             :burned="isRecorded"
-            :remain-text="remainText"
+            :remain-text="displayRemainText"
             :progress="headerProgress"
+            :show-remain-prefix="boardReady"
           ></stateHeader>
         </div>
         <div class="RealDeskPart">

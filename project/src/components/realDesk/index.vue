@@ -27,12 +27,27 @@ const setProcessedButtonString = (status: string) => {
   btnComp.value?.setStatusFromString?.(status)
 }
 
+const setProcessedSwitchString = (status: string) => {
+  swComp.value?.setStatusFromString?.(status)
+}
+
+const setProcessedStatus = (switchStatus: string, buttonStatus: string) => {
+  setProcessedSwitchString(switchStatus)
+  setProcessedButtonString(buttonStatus)
+}
+
 const resetDeskStates = () => {
   btnComp.value?.resetStates?.()
   swComp.value?.resetStates?.()
 }
 
-defineExpose({ getAllStates, setProcessedButtonString, resetDeskStates })
+defineExpose({
+  getAllStates,
+  setProcessedButtonString,
+  setProcessedSwitchString,
+  setProcessedStatus,
+  resetDeskStates
+})
 </script>
 
 

@@ -5,10 +5,12 @@ const props = withDefaults(defineProps<{
   burned?: boolean
   remainText?: string
   progress?: number
+  showRemainPrefix?: boolean
 }>(), {
   burned: false,
   remainText: 'XXXXX',
-  progress: 80
+  progress: 80,
+  showRemainPrefix: true
 })
 
 const format = () => ''
@@ -20,7 +22,7 @@ const state = computed(() => props.burned)
       <div class="headerBg">
         <div style="display: flex; justify-content: space-around; align-items: center;
         width: 100%;height: 93%;">
-          <span>剩余时间：{{ props.remainText }}</span>
+          <span>{{ props.showRemainPrefix ? `剩余时间：${props.remainText}` : props.remainText }}</span>
             <div style="display: inline-flex; align-items: center;">
             <el-icon size="22px" color="rgb(0, 230, 81)" v-if="state">
               <SuccessFilled />
