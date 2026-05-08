@@ -1,350 +1,153 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 
-// 用来存储板子选择
-const boardselecting = ref('')
+const router = useRouter()
 
-// 用来控制对话框显示
-const dialogVBVisible = ref(false)
-const dialogRBVisible = ref(false)
-
-// 用来存储上传的文件    //!!!!!!这里记得把true改成null
-const uploadedFile = ref(true)
-
-// 用来存储上传状态
-const uploadStatus = ref('')
-
-// 用来存储手动绑定的引脚数据
-const pinBinding = ref({
-  a: '',
-  b: '',
-  f: '',
-})
-
-// 用来控制手动引脚绑定的勾选框
-const manualBinding = ref(false)
-
-// 监听 pinBinding 的变化，更新 manualBinding
-watch(
-  () => pinBinding.value,
-  newPinBinding => {
-    // 如果 a、b、f 都有值，设置 manualBinding 为 true
-    if (newPinBinding.a && newPinBinding.b && newPinBinding.f) {
-      manualBinding.value = true
-    } else {
-      manualBinding.value = false
-    }
-  },
-  { deep: true }, // 深度监听 pinBinding 对象中的变化
-)
-
-// 上传文件时的验证函数----->1、验证上传的文件是否为.v格式
-const beforeUpload = file => {
-  const isVFile = file.name.endsWith('.v')
-  if (!isVFile) {
-    ElMessage.error('请上传 .v 格式的 Verilog 源码文件')
-    uploadStatus.value = '上传失败'
-  } else {
-    uploadStatus.value = '上传成功'
-    return isVFile
-  }
-}
-
-// 用户点击确定后-----弹出Dialog----验证是否完成引脚绑定和文件上传
-const handleConfirm = () => {
-  if (boardselecting.value === 'virtual') {
-    // 如果选择了虚拟板，强制进行引脚绑定
-    if (!manualBinding.value) {
-      ElMessage.error('请手动完成引脚绑定')
-      return
-    }
-    if (!uploadedFile.value) {
-      ElMessage.error('请上传 .v 格式的 Verilog 文件')
-      return
-    }
-  } else if (boardselecting.value === 'real') {
-    if (!uploadedFile.value) {
-      ElMessage.error('请上传 .bit 格式的 bit 文件')
-      return
-    }
-  }
-
-  // 假设这是发送给后端的接口，后端会接收文件和引脚绑定数据
-  const postData = {
-    file: uploadedFile.value,
-    pinBinding: manualBinding.value ? pinBinding.value : {}, // 只有在勾选手动绑定时传递
-  }
-  console.log(postData)
-  // TODO: 通过 axios 或其他方式将数据发送给后端
-  dialogVBVisible.value = false
-  dialogRBVisible.value = false
-}
-
-// 点击取消时关闭对话框
-const handleCancel = () => {
-  dialogVBVisible.value = false
+const goBoard = path => {
+  router.push(path)
 }
 </script>
 
 <template>
   <div class="page-container">
-    <!-- 内容区 -->
-    <h1>请选择您的实验板</h1>
-    <el-radio-group class="boardselecting-content" v-model="boardselecting">
-      <!-- 虚拟板 -->
-      <el-radio-button class="board" :label="'virtual'">
-        <h2>虚拟板</h2>
-        <img
-          src="@/assets/pictures/虚拟板-样例图.png"
-          alt="虚拟板"
-          class="board-img"
-        />
-      </el-radio-button>
+    <section class="selector-panel">
+      <h1 class="title">选择实验板</h1>
+      <p class="subtitle">点击卡片直接进入对应实验页面</p>
 
-      <!-- 实物板 -->
-      <el-radio-button class="board" :label="'real'">
-        <h2>实物板</h2>
-        <!-- <div v-if="userStore.userRole === 'guest'" class="overlay">
-          请登录后使用
-        </div> -->
-        <img
-          src="@/assets/pictures/实物板-样例图.png"
-          alt="实物板"
-          class="board-img"
-        />
-      </el-radio-button>
-    </el-radio-group>
+      <div class="cards">
+        <button class="board-card virtual" type="button" @click="goBoard('/VirtualBoard')">
+          <div class="card-top">
+            <h2>虚拟板</h2>
+            <span class="enter">进入 →</span>
+          </div>
+          <img
+            src="@/assets/pictures/虚拟板-样例图.png"
+            alt="虚拟板"
+            class="board-img"
+          />
+        </button>
 
-    <div>
-      <el-button class="button" type="warning" @click="dialogVBVisible = true">
-        确 定
-      </el-button>
-    </div>
-
-    <!-- 虚拟板------弹出Dialog完成verilog上传和引脚绑定-->
-    <el-dialog
-      title="上传verilog源码并绑定引脚"
-      v-model="dialogVBVisible"
-      @close="handleCancel"
-      width="40%"
-    >
-      <div v-if="boardselecting === 'virtual'">
-        <div>
-          <h3>引脚绑定</h3>
-          <!-- 引脚绑定部分 -->
-          <div>
-            <h3>信号 a</h3>
-            <el-radio-group v-model="pinBinding.a">
-              <el-radio-button label="SW0">SW0</el-radio-button>
-              <el-radio-button label="SW1">SW1</el-radio-button>
-              <el-radio-button label="SW2">SW2</el-radio-button>
-              <el-radio-button label="SW3">SW3</el-radio-button>
-              <el-radio-button label="SW4">SW4</el-radio-button>
-              <el-radio-button label="SW5">SW5</el-radio-button>
-              <el-radio-button label="SW6">SW6</el-radio-button>
-              <el-radio-button label="SW7">SW7</el-radio-button>
-            </el-radio-group>
+        <button class="board-card real" type="button" @click="goBoard('/RealBoard')">
+          <div class="card-top">
+            <h2>实体板</h2>
+            <span class="enter">进入 →</span>
           </div>
-          <div>
-            <h3>信号 b</h3>
-            <el-radio-group v-model="pinBinding.b">
-              <el-radio-button label="SW0">SW0</el-radio-button>
-              <el-radio-button label="SW1">SW1</el-radio-button>
-              <el-radio-button label="SW2">SW2</el-radio-button>
-              <el-radio-button label="SW3">SW3</el-radio-button>
-              <el-radio-button label="SW4">SW4</el-radio-button>
-              <el-radio-button label="SW5">SW5</el-radio-button>
-              <el-radio-button label="SW6">SW6</el-radio-button>
-              <el-radio-button label="SW7">SW7</el-radio-button>
-            </el-radio-group>
-          </div>
-          <div>
-            <h3>信号 f</h3>
-            <el-radio-group v-model="pinBinding.f">
-              <el-radio-button label="LD0">LD0</el-radio-button>
-              <el-radio-button label="LD1">LD1</el-radio-button>
-              <el-radio-button label="LD2">LD2</el-radio-button>
-              <el-radio-button label="LD3">LD3</el-radio-button>
-              <el-radio-button label="LD4">LD4</el-radio-button>
-              <el-radio-button label="LD5">LD5</el-radio-button>
-              <el-radio-button label="LD6">LD6</el-radio-button>
-              <el-radio-button label="LD7">LD7</el-radio-button>
-            </el-radio-group>
-          </div>
-        </div>
+          <img
+            src="@/assets/pictures/实物板-样例图.png"
+            alt="实体板"
+            class="board-img"
+          />
+        </button>
       </div>
-
-      <el-upload
-        class="upload-demo"
-        drag
-        action=""
-        :before-upload="beforeUpload"
-        :on-success="
-          (res, file) => {
-            uploadedFile.value = file
-          }
-        "
-        accept=".v"
-        v-if="boardselecting === 'virtual'"
-      >
-        <i class="el-icon-upload"></i>
-        <div class="el-upload__text">
-          <span>{{
-            uploadStatus === ''
-              ? '将 .v 格式文件拖到此处，或者点击上传'
-              : uploadStatus
-          }}</span>
-        </div>
-      </el-upload>
-
-      <template v-slot:footer>
-        <span class="dialog-footer">
-          <el-button @click="handleCancel">取消</el-button>
-          <el-button type="primary" @click="handleConfirm">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
+    </section>
   </div>
 </template>
 
-<style lang="scss">
-%bg {
-  background-image: url('../../src/assets/bg-dyn-light.png');
-}
-
-:deep() {
-  --el-color-primary: #924141 !important;
-}
-
+<style scoped lang="scss">
 .page-container {
-  font-family: Arial, sans-serif;
-  height: 100vh;
-  @extend %bg;
+  min-height: 100vh;
+  padding: 56px 32px;
+  background-image: url('../../src/assets/bj.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
-h1 {
-  text-align: center;
+.selector-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 36px 42px;
+  border-radius: 26px;
+  background: rgba(248, 246, 243, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
 }
 
-.boardselecting-content {
+.title {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 700;
+  color: #1f2430;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  margin: 10px 0 28px;
+  font-size: 18px;
+  color: #4c5567;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.board-card {
+  display: block;
+  text-align: left;
+  border: none;
+  border-radius: 18px;
+  padding: 16px 16px 18px;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(19, 30, 48, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.board-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(19, 30, 48, 0.22);
+}
+
+.board-card.virtual {
+  border-top: 5px solid #4e9dff;
+}
+
+.board-card.real {
+  border-top: 5px solid #ff8e4b;
+}
+
+.card-top {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin: 60px 0;
+  margin-bottom: 12px;
 }
 
-.board {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  // background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  width: 45%;
-  box-shadow: 0 2px 5px rgba(23, 17, 17, 0.1);
-  --el-color-primary: #924141;
+.card-top h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #1f2430;
+}
+
+.enter {
+  font-size: 16px;
+  font-weight: 600;
+  color: #5a6374;
 }
 
 .board-img {
-  width: 90%;
-  margin: 10px 0;
-}
-
-.page-container .el-button {
-  display: block;
-  margin: 0 auto;
-  width: 15%;
-  height: 50px;
-  font-size: 20px;
-  border-radius: 30px;
-}
-
-.el-dialog {
+  width: 100%;
   border-radius: 12px;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid #d9dde6;
 }
 
-.el-dialog__header {
-  font-size: 20px;
-  font-weight: 600;
-  text-align: center;
-}
-
-.el-dialog__body {
-  padding: 20px 30px;
-}
-
-.dialog-footer .el-button:hover {
-  transform: translateY(-2px);
-}
-
-.el-radio-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.el-radio-button {
-  font-size: 80%;
-  border-radius: 6px;
-  color: #34495e;
-  transition: all 0.3s ease;
-  flex: 1 1 20%;
-}
-
-.el-radio-button:hover {
-  transform: translateY(-2px);
-}
-
-.el-upload {
-  margin-top: 20px;
-  border-radius: 10px;
-  text-align: center;
-  background-color: #fcfcfc;
-  transition: all 0.3s ease;
-}
-
-.el-upload__text {
-  font-size: 16px;
-  color: #34495e;
-  margin-top: 10px;
-}
-
-h3 {
-  font-size: 18px;
-  color: #2c3e50;
-  margin-bottom: 10px;
-  text-align: left;
-}
-
-.dialog-footer {
-  display: flex;
-}
-
-// .overlay {
-//   position: absolute;
-//   width: 100%;
-//   height: 100%;
-//   background: rgba(0, 0, 0, 0.5); /* 灰色遮罩 */
-//   color: white;
-//   font-size: 18px;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   font-weight: bold;
-// }
-
-@media (max-width: 768px) {
-  .content {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 900px) {
+  .page-container {
+    padding: 28px 14px;
   }
 
-  .board {
-    width: 80%;
-    margin-bottom: 20px;
+  .selector-panel {
+    padding: 24px 18px 28px;
+  }
+
+  .title {
+    font-size: 34px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
   }
 }
 </style>
